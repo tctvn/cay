@@ -1,0 +1,2 @@
+thư mục này chỉ để tham khảo không chỉnh sữa, chỉ đọc
+mã nguồn này đang hoạt động tốt trên cả windows 10 11 nên tính năng có thể dựa vào để phát triển

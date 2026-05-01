@@ -1,0 +1,3 @@
+C:\vscode\cay\Cay\bin\Debug\net48\publish\Cay.exe
+C:\vscode\cay\Cay\bin\Debug\net48\publish\Cay.exe.config
+C:\vscode\cay\Cay\bin\Debug\net48\publish\Cay.pdb
