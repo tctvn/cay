@@ -25,6 +25,9 @@ namespace CayIME
             }
             try
             {
+                Application.ThreadException += (sender, args) => { /* Ignore or log */ };
+                AppDomain.CurrentDomain.UnhandledException += (sender, args) => { /* Ignore or log */ };
+                
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 Application.Run(new CayApplication());

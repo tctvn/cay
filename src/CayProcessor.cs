@@ -122,18 +122,8 @@ namespace Cay
                     sb.Append(s[i]);
                     i++;
                 }
-                else if (sb.Length >= 2 && IsChar(sb[sb.Length - 2], 'u') && IsChar(sb[sb.Length - 1], 'o'))
+                else if (TryApplyHookKey(sb))
                 {
-                    bool firstUpper = char.IsUpper(sb[sb.Length - 2]);
-                    bool secondUpper = char.IsUpper(sb[sb.Length - 1]);
-                    sb.Remove(sb.Length - 2, 2);
-                    sb.Append(firstUpper ? '\u01af' : '\u01b0');
-                    sb.Append(secondUpper ? '\u01a0' : '\u01a1');
-                }
-                else if (sb.Length > 0 && CayData.HookRules.TryGetValue(sb[sb.Length - 1], out char hooked))
-                {
-                    sb.Remove(sb.Length - 1, 1);
-                    sb.Append(hooked);
                 }
                 else
                 {
@@ -142,6 +132,30 @@ namespace Cay
             }
 
             return sb.ToString();
+        }
+
+        private bool TryApplyHookKey(StringBuilder sb)
+        {
+            for (int i = sb.Length - 1; i >= 0; i--)
+            {
+                if (IsChar(sb[i], 'o') && i > 0 && IsChar(sb[i - 1], 'u'))
+                {
+                    bool firstUpper = char.IsUpper(sb[i - 1]);
+                    bool secondUpper = char.IsUpper(sb[i]);
+                    sb.Remove(i - 1, 2);
+                    sb.Insert(i - 1, secondUpper ? '\u01a0' : '\u01a1');
+                    sb.Insert(i - 1, firstUpper ? '\u01af' : '\u01b0');
+                    return true;
+                }
+
+                if (CayData.HookRules.TryGetValue(sb[i], out char hooked))
+                {
+                    sb[i] = hooked;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool IsHookKeyTarget(StringBuilder sb)
@@ -157,27 +171,55 @@ namespace Cay
         {
             if (string.IsNullOrEmpty(s)) return s;
 
-            char last = char.ToLower(s[s.Length - 1]);
-            if (!IsToneKey(last)) return s;
+            int firstVowelIdx = FindFirstVowel(NormalizeForSyllable(s));
+            if (firstVowelIdx < 0) return s;
 
-            string word = s.Substring(0, s.Length - 1);
-            if (string.IsNullOrEmpty(word)) return s;
+            StringBuilder baseWord = new StringBuilder();
+            StringBuilder toneKeys = new StringBuilder();
 
-            char previous = char.ToLower(word[word.Length - 1]);
-            if (previous == last)
+            for (int i = 0; i < s.Length; i++)
             {
-                return word.Substring(0, word.Length - 1);
+                if (i > firstVowelIdx && IsToneKey(s[i]))
+                {
+                    toneKeys.Append(s[i]);
+                }
+                else
+                {
+                    baseWord.Append(s[i]);
+                }
             }
 
-            if (!HasAnyVowel(word)) return s;
-            if (last == 'z') return word;
+            if (toneKeys.Length == 0) return s;
 
-            return AddTone(word, last);
+            string currentBase = baseWord.ToString();
+            char currentTone = '\0';
+            char lastToneChar = '\0';
+
+            string toneSequence = toneKeys.ToString();
+            for (int i = 0; i < toneSequence.Length; i++)
+            {
+                char t = char.ToLower(toneSequence[i]);
+                if (t == lastToneChar)
+                {
+                    currentTone = '\0';
+                    currentBase += toneSequence[i];
+                    lastToneChar = '\0';
+                }
+                else
+                {
+                    currentTone = toneSequence[i];
+                    lastToneChar = t;
+                }
+            }
+
+            if (currentTone == '\0' || char.ToLower(currentTone) == 'z') return currentBase;
+
+            return AddTone(currentBase, currentTone);
         }
 
         private string AddTone(string word, char tone)
         {
-            int toneType = " fsrxj".IndexOf(tone);
+            int toneType = " fsrxj".IndexOf(char.ToLower(tone));
             if (toneType <= 0) return word;
 
             int toneIndex = FindToneIndex(word);
@@ -202,13 +244,24 @@ namespace Cay
         private int SelectToneVowelOffset(string nucleus, bool hasConsonantFinal)
         {
             string n = NormalizeForSyllable(nucleus);
-            int vowelCount = CountVowels(n);
-            if (vowelCount <= 1) return 0;
-
-            if (CayData.VowelsOffset1.Contains(n)) return 1;
-            if (CayData.VowelsOffset2.Contains(n)) return 2;
-
-            return hasConsonantFinal ? 1 : 0;
+            
+            if (n.Length == 3)
+            {
+                if (n == "uy\u00ea" || n == "uye") return 2;
+                return 1;
+            }
+            
+            if (n.Length == 2)
+            {
+                if (hasConsonantFinal) return 1;
+                
+                if (n == "u\u00ea" || n == "ue" || 
+                    n == "u\u01a1" || n == "uo") return 1;
+                
+                return 0;
+            }
+            
+            return 0;
         }
 
         private bool TryParseSyllable(string word, out SyllableParts parts)

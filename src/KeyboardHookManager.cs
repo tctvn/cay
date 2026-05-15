@@ -50,11 +50,15 @@ namespace CayIME
         {
             if (nCode >= 0)
             {
-                int msg = wParam.ToInt32();
-                var kb = (KBDLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT));
-                var e = new HookKeyEventArgs((Keys)kb.vkCode, kb.dwExtraInfo);
-                if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) { KeyDown?.Invoke(this, e); if (e.Handled || e.SuppressKeyPress) return (IntPtr)1; }
-                else if (msg == WM_KEYUP || msg == WM_SYSKEYUP) { KeyUp?.Invoke(this, e); if (e.Handled || e.SuppressKeyPress) return (IntPtr)1; }
+                try
+                {
+                    int msg = wParam.ToInt32();
+                    var kb = (KBDLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT));
+                    var e = new HookKeyEventArgs((Keys)kb.vkCode, kb.dwExtraInfo);
+                    if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN) { KeyDown?.Invoke(this, e); if (e.Handled || e.SuppressKeyPress) return (IntPtr)1; }
+                    else if (msg == WM_KEYUP || msg == WM_SYSKEYUP) { KeyUp?.Invoke(this, e); if (e.Handled || e.SuppressKeyPress) return (IntPtr)1; }
+                }
+                catch { }
             }
             return CallNextHookEx(_kbHookID, nCode, wParam, lParam);
         }
@@ -62,7 +66,9 @@ namespace CayIME
         private IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0 && (wParam == (IntPtr)WM_LBUTTONDOWN || wParam == (IntPtr)WM_RBUTTONDOWN || wParam == (IntPtr)WM_MBUTTONDOWN))
-                MouseClick?.Invoke(this, EventArgs.Empty);
+            {
+                try { MouseClick?.Invoke(this, EventArgs.Empty); } catch { }
+            }
             return CallNextHookEx(_msHookID, nCode, wParam, lParam);
         }
 
