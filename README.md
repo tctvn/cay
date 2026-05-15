@@ -66,11 +66,12 @@
 
 ```
 src/
-├── Program.cs       # Entry point + UI (tray, hooks, toggle)
-├── CayEngine.cs     # IME engine: xử lý phím, buffer, trạng thái
-├── CayProcessor.cs  # Xử lý nội bộ: dấu, vần, nguyên âm đôi
-├── CayData.cs       # Bảng quy tắc Telex + validator
-└── NativeInput.cs   # P/Invoke: hooks bàn phím/chuột + gửi phím
+├── Program.cs             # Khởi chạy, System Tray, phím tắt (Ctrl+Shift)
+├── CayEngine.cs           # Lõi bộ gõ: quản lý buffer, trạng thái gõ
+├── CayProcessor.cs        # Xử lý Telex: bỏ dấu, ghép vần, kiểm tra từ
+├── CayData.cs             # Dữ liệu bảng mã Telex & quy tắc tiếng Việt
+├── KeyboardHookManager.cs # Hook bàn phím cấp thấp (Low-level Hook)
+└── InputInjector.cs       # Gửi phím giả lập (Backspace, ký tự tiếng Việt)
 ```
 
 MIT License
