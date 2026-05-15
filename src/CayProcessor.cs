@@ -137,7 +137,7 @@ namespace Cay
                 }
                 else
                 {
-                    sb.Append(char.IsUpper(s[i]) ? '\u01af' : '\u01b0');
+                    sb.Append(s[i]);
                 }
             }
 
