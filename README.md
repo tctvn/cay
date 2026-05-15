@@ -12,7 +12,7 @@
 
 ## Nó làm được gì
 
-- **~26 KB** — nhỏ hơn một cái ảnh JPEG bình thường
+- **24 KB** — nhỏ hơn một cái ảnh JPEG bình thường
 - **Không cài đặt** — không registry rác, không DLL lung tung, xóa file là hết
 - **Tự bật cùng Windows** — lần đầu chạy hỏi một lần, sau đó im
 - **Tự nhận ra khi không phải tiếng Việt** — gõ `loading`, `ctrl+c`, tên file, địa chỉ email... bộ gõ tự nhận diện, không cần tắt tay
