@@ -4,26 +4,33 @@ project(cay LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version")
+    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build for both Apple Silicon and Intel" FORCE)
+    enable_language(OBJCXX)
+endif()
+
 # ---------------------------------------------------------------------------
-# Sources
+# Core Sources
 # ---------------------------------------------------------------------------
-set(SOURCES
-    src/platform/windows/main.cpp
+set(CORE_SOURCES
     src/core/CayData.cpp
     src/core/CayEngine.cpp
-    src/platform/windows/InputInjector.cpp
-    src/platform/windows/KeyboardHookManager.cpp
-    src/platform/windows/no_crt.cpp
 )
 
-add_executable(cay WIN32 ${SOURCES})
-
-target_include_directories(cay PRIVATE src/core src/platform/windows)
-
 # ---------------------------------------------------------------------------
-# Compiler + linker flags (MSVC) – small static exe, no dynamic CRT DLL
+# OS-Specific setup
 # ---------------------------------------------------------------------------
-if(MSVC)
+if(WIN32)
+    set(PLATFORM_SOURCES
+        src/platform/windows/main.cpp
+        src/platform/windows/InputInjector.cpp
+        src/platform/windows/KeyboardHookManager.cpp
+        src/platform/windows/no_crt.cpp
+    )
+    add_executable(cay WIN32 ${CORE_SOURCES} ${PLATFORM_SOURCES})
+    target_include_directories(cay PRIVATE src/core src/platform/windows)
+
     # Strip CMake-injected /EHsc and /GR so we can override them cleanly
     string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     string(REPLACE "/GR"   "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -68,5 +75,45 @@ if(MSVC)
         libvcruntime.lib  # CRT helpers – __chkstk, memset, memcpy etc.
         libucrt.lib       # Universal CRT – wide-char, math etc.
     )
-endif()
 
+elseif(APPLE)
+    set(PLATFORM_SOURCES
+        src/platform/macos/AppDelegate.mm
+        src/platform/macos/MacInputInjector.mm
+        src/platform/macos/MacHookManager.mm
+    )
+
+    set_source_files_properties(
+        ${PLATFORM_SOURCES}
+        PROPERTIES COMPILE_FLAGS "-fobjc-arc"
+    )
+    
+    # MACOSX_BUNDLE makes it an .app bundle
+    add_executable(cay MACOSX_BUNDLE ${CORE_SOURCES} ${PLATFORM_SOURCES})
+    target_include_directories(cay PRIVATE src/core src/platform/macos)
+
+    # Bundle configuration
+    set_target_properties(cay PROPERTIES
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.tctvn.cay"
+        MACOSX_BUNDLE_BUNDLE_NAME "Cay"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.6"
+        MACOSX_BUNDLE_BUNDLE_VERSION "1"
+        MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/macos/Info.plist.in
+    )
+
+    # Link frameworks
+    find_library(COCOA_FRAMEWORK Cocoa)
+    find_library(COREGRAPHICS_FRAMEWORK CoreGraphics)
+    find_library(CARBON_FRAMEWORK Carbon)
+    find_library(SERVICEMANAGEMENT_FRAMEWORK ServiceManagement)
+    
+    target_link_libraries(cay PRIVATE
+        ${COCOA_FRAMEWORK}
+        ${COREGRAPHICS_FRAMEWORK}
+        ${CARBON_FRAMEWORK}
+        ${SERVICEMANAGEMENT_FRAMEWORK}
+    )
+    
+    # Compile options for minimal size on macOS
+    target_compile_options(cay PRIVATE -Os -fno-exceptions -fno-rtti)
+endif()

@@ -1,4 +1,4 @@
-name: Build and Release Cay (Windows Only)
+name: Build and Release Cay
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  build-and-release:
+  build-windows:
     runs-on: windows-latest
     steps:
       - name: Checkout Code
@@ -21,9 +21,32 @@ jobs:
           cmake -B build
           cmake --build build --config Release
 
-      - name: Publish to GitHub Releases
+      - name: Publish Windows to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
           files: build/Release/cay.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build macOS Universal (Intel + M1/M2)
+        run: |
+          cmake -B build -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" -DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"
+          cmake --build build --config Release
+
+      - name: Archive macOS App Bundle
+        run: |
+          # Use ditto to preserve permissions and resource forks
+          ditto -c -k --sequesterRsrc --keepParent build/cay.app build/cay-mac.zip
+
+      - name: Publish macOS to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/cay-mac.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

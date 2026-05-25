@@ -1,4 +1,4 @@
-﻿#include "CayEngine.h"
+#include "CayEngine.h"
 
 // ============================================================================
 // CayEngine.cpp  –  Free-style Telex state machine (RULE 3)
@@ -771,6 +771,8 @@ void TelexEngine::OnKeyDown(Cay::KeyEvent& e) {
     case Cay::KeyCode::Delete:
         ResetFull();
         return;
+    default:
+        break;
     }
 
     // -----------------------------------------------------------------------
