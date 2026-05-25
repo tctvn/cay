@@ -1,0 +1,29 @@
+name: Build and Release Cay (Windows Only)
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'cay'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Windows (CMake)
+        run: |
+          cmake -B build
+          cmake --build build --config Release
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/Release/cay.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

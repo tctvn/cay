@@ -27,3 +27,5 @@ desktop.ini
 # Resharper
 _ReSharper.*
 *.DotSettings.user
+
+build/
