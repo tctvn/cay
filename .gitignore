@@ -1,0 +1,29 @@
+# Build results
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Rider
+.idea/
+
+# Fody
+FodyWeavers.xsd
+
+# Reference DLLs (using NuGet instead)
+*.dll
+
+# NuGet
+*.nupkg
+packages/
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Resharper
+_ReSharper.*
+*.DotSettings.user
