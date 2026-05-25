@@ -153,7 +153,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                 L"Cay \u2013 B\u1ed9 g\u00f5 ti\u1ebfng Vi\u1ec7t Telex v1.0\n\n"
                 L"Ctrl+Shift = B\u1eadt / T\u1eaft\n\n"
                 L"aa\u2192\u00e2  aw\u2192\u0103  dd\u2192\u0111  ee\u2192\u00ea  oo\u2192\u00f4  ow\u2192\u01a1  uw\u2192\u01b0\n"
-                L"s=s\u1eafc  f=huy\u1ec1n  r=h\u1ecfi  x=ng\u00e3  j=n\u1eb7ng",
+                L"s=s\u1eafc  f=huy\u1ec1n  r=h\u1ecfi  x=ng\u00e3  j=n\u1eb7ng\n\nLicense: GPL-3.0",
                 L"Gi\u1edbi thi\u1ec7u", MB_OK | MB_ICONINFORMATION);
             break;
         case IDM_EXIT:
@@ -288,6 +288,22 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdL
     g_nid.uCallbackMessage = WM_TRAYICON;
     UpdateTrayIcon(true);
 
+    // Check first launch
+    HKEY hKeyFirst;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"SOFTWARE\\CayIME", 0, KEY_READ, &hKeyFirst) != ERROR_SUCCESS) {
+        if (MessageBoxW(nullptr, L"B\u1ea1n c\u00f3 mu\u1ed1n Cay t\u1ef1 \u0111\u1ed9ng ch\u1ea1y khi kh\u1edfi \u0111\u1ed9ng m\u00e1y kh\u00f4ng?", L"Cay - L\u1ea7n ch\u1ea1y \u0111\u1ea7u ti\u00ean", MB_YESNO | MB_ICONQUESTION) == IDYES) {
+            if (!IsAutoStart()) ToggleAutoStart();
+        }
+        HKEY hKeyWrite;
+        if (RegCreateKeyExW(HKEY_CURRENT_USER, L"SOFTWARE\\CayIME", 0, nullptr, 0, KEY_WRITE, nullptr, &hKeyWrite, nullptr) == ERROR_SUCCESS) {
+            DWORD val = 1;
+            RegSetValueExW(hKeyWrite, L"FirstLaunch", 0, REG_DWORD, (const BYTE*)&val, sizeof(val));
+            RegCloseKey(hKeyWrite);
+        }
+    } else {
+        RegCloseKey(hKeyFirst);
+    }
+
     // Bắt đầu Hooks
     g_hookManager = new CayIME::InputHookManager();
     g_hookManager->KeyDown = OnKeyDownHook;
@@ -313,4 +329,5 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdL
 
     return (int)msg.wParam;
 }
+
 
