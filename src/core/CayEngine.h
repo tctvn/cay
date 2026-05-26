@@ -107,6 +107,10 @@ private:
     // Reset internal state mà không gửi input nào.
     void ResetState();
 
+    // Replay 1 phím thô vào engine (record + try modifiers + fallback append).
+    // Dùng chung cho cả OnKeyDown lẫn Backspace replay, tránh duplicate logic.
+    void ReplayKey(wchar_t ch);
+
     // Helpers
     static bool IsAlpha(wchar_t ch);
     static wchar_t ToLowerViet(wchar_t c);

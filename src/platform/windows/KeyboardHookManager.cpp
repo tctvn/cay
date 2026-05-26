@@ -75,11 +75,6 @@ LRESULT CALLBACK InputHookManager::KbProc(int nCode, WPARAM wParam, LPARAM lPara
     bool isDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
     bool isUp   = (wParam == WM_KEYUP   || wParam == WM_SYSKEYUP);
 
-    // Debounce: skip key-down nếu đã được ghi nhận là down.
-    if (isDown && s_instance->TestKeyBit(vk)) {
-        return CallNextHookEx(nullptr, nCode, wParam, lParam);
-    }
-
     HookKeyEventArgs args;
     args.keyCode   = vk;
     args.character = ch;

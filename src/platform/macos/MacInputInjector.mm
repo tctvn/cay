@@ -6,6 +6,9 @@ namespace CayIME {
 // Cờ đánh dấu các event do bộ gõ tự tạo, tránh loop
 const int CAY_EVENT_MAGIC_FLAG = 9999;
 
+// Cờ báo hiệu vừa có sự kiện thay thế văn bản xảy ra
+bool g_justInjected = false;
+
 static void PostKeyboardEvent(CGKeyCode keyCode, bool isKeyDown) {
     CGEventRef event = CGEventCreateKeyboardEvent(NULL, keyCode, isKeyDown);
     if (event) {
@@ -26,6 +29,8 @@ static void PostUnicodeString(const UniChar* chars, size_t length) {
 }
 
 void MacInputInjector::ReplaceText(int backspaceCount, const wchar_t* newText, int newTextLen) {
+    g_justInjected = true;
+
     int totalBackspaces = backspaceCount;
     // 1. Nếu có xoá, chúng ta gửi một dummy keydown/up (chữ 'a' = 0x00) 
     // để triệt tiêu popup gợi ý dấu của macOS (như trên Safari)

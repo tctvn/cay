@@ -156,7 +156,7 @@ namespace CayIME {
 
 - (void)showAbout {
     NSAlert *alert = [[NSAlert alloc] init];
-    [alert setMessageText:@"Cay – Bộ gõ tiếng Việt Telex v1.0"];
+    [alert setMessageText:@"Cay – Bộ gõ tiếng Việt Telex v1.0.1"];
     [alert setInformativeText:@"aa→â  aw→ă  dd→đ  ee→ê  oo→ô  ow→ơ  uw→ư\n"
                               @"s=sắc  f=huyền  r=hỏi  x=ngã  j=nặng\n\n"
                               @"License: GPL-3.0\nSource: github.com/tctvn/cay"];
