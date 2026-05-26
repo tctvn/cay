@@ -77,7 +77,7 @@ if(WIN32)
     target_link_options(cayy PRIVATE
         /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib
         /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:vcruntimed.lib /NODEFAULTLIB:ucrtd.lib
-        /ENTRY:wWinMain /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /MANIFEST:NO /machine:x64
+        /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /MANIFEST:NO /machine:x64
     )
     
     target_link_libraries(cayy PRIVATE
