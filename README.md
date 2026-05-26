@@ -8,21 +8,61 @@
 
 ---
 
-## 🚀 Cài Đặt Tự Động (Khuyên Dùng)
+## 🚀 Cài Đặt & Gỡ Cài Đặt (Dòng Lệnh)
 
-Mở Terminal/PowerShell và dán dòng lệnh tương ứng để tự động tải, cài đặt và cấu hình khởi động cùng hệ thống trong nháy mắt:
+Mở Terminal/PowerShell và dán dòng lệnh tương ứng để tự động tải, cài đặt/gỡ cài đặt.
 
-**🪟 Windows (PowerShell):**
-```powershell
-irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-windows.ps1 | iex
-```
+<details>
+<summary><strong>🪟 Windows (Bản Minimal siêu nhẹ)</strong></summary>
 
-**🍏 macOS (Terminal):**
-```bash
-curl -sL https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-mac.sh | bash
-```
+* **Cài đặt:**
+  ```powershell
+  irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-windows.ps1 | iex
+  ```
+* **Gỡ cài đặt:**
+  ```powershell
+  irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/uninstall-windows.ps1 | iex
+  ```
+</details>
 
-> **Ghi chú gỡ cài đặt:** Nếu muốn gỡ cài đặt, bạn có thể tải về repo và chạy các file tương ứng trong thư mục `scripts/` (`uninstall-windows.ps1` hoặc `uninstall-mac.sh`).
+<details>
+<summary><strong>🪟 Windows (Bản Full - Có GUI & Macro)</strong></summary>
+
+* **Cài đặt:**
+  ```powershell
+  irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-windows-full.ps1 | iex
+  ```
+* **Gỡ cài đặt:**
+  ```powershell
+  irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/uninstall-windows.ps1 | iex
+  ```
+</details>
+
+<details>
+<summary><strong>🍏 macOS</strong></summary>
+
+* **Cài đặt:**
+  ```bash
+  curl -sL https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-mac.sh | bash
+  ```
+* **Gỡ cài đặt:**
+  ```bash
+  curl -sL https://raw.githubusercontent.com/tctvn/cay/main/scripts/uninstall-mac.sh | bash
+  ```
+</details>
+
+<details>
+<summary><strong>🐧 Linux (Fcitx5 - Nightly)</strong></summary>
+
+* **Cài đặt:**
+  ```bash
+  wget -qO- https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-fcitx5.sh | bash
+  ```
+* **Gỡ cài đặt:**
+  ```bash
+  wget -qO- https://raw.githubusercontent.com/tctvn/cay/main/scripts/uninstall-fcitx5.sh | bash
+  ```
+</details>
 
 ---
 

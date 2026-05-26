@@ -20,6 +20,7 @@ $exePath = "$installDir\cay.exe"
 Write-Host "`n[1/3] Tai ve CayIME moi nhat tu GitHub..." -ForegroundColor Yellow
 # Dong tien trinh dang chay neu con lock
 Get-Process cay -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process cayy -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Seconds 1
 
 if (!(Test-Path -Path $installDir)) {
