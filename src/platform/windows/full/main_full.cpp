@@ -96,6 +96,18 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
         return (INT_PTR)TRUE;
 
     case WM_COMMAND:
+        if (HIWORD(wParam) == EN_SETFOCUS) {
+            if (LOWORD(wParam) == IDC_TXT_MACRO_KEY || LOWORD(wParam) == IDC_TXT_MACRO_VAL) {
+                SendMessage(hDlg, DM_SETDEFID, IDC_BTN_MACRO_ADD, 0);
+                PostMessage((HWND)lParam, EM_SETSEL, 0, -1);
+            }
+        }
+        else if (HIWORD(wParam) == EN_KILLFOCUS) {
+            if (LOWORD(wParam) == IDC_TXT_MACRO_KEY || LOWORD(wParam) == IDC_TXT_MACRO_VAL) {
+                SendMessage(hDlg, DM_SETDEFID, IDOK, 0);
+            }
+        }
+        
         if (LOWORD(wParam) == IDC_BTN_HOTKEY_SAVE) {
             g_capturingHotkey = true;
             SetDlgItemTextW(hDlg, IDC_TXT_HOTKEY, L"[Nhấn phím tắt mới...]");
@@ -520,8 +532,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdL
     // Message Loop
     MSG msg;
     while (GetMessage(&msg, nullptr, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        if (!g_hDlg || !IsDialogMessage(g_hDlg, &msg)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
     }
 
     // Cleanup
