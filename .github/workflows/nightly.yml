@@ -1,0 +1,57 @@
+name: Nightly Build
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-fcitx5:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake extra-cmake-modules fcitx5 libfcitx5core-dev libfcitx5config-dev libfcitx5utils-dev fcitx5-modules-dev
+
+      - name: Build Fcitx5 Plugin (CMake)
+        run: |
+          mkdir -p build-fcitx5
+          cd build-fcitx5
+          cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_FCITX5=ON
+          make -j$(nproc)
+
+      - name: Archive Linux fcitx5 Plugin
+        run: |
+          cd build-fcitx5
+          make install DESTDIR=$PWD/install_root
+          cd install_root
+          tar -czvf cayime-fcitx5-linux.tar.gz usr/
+          mv cayime-fcitx5-linux.tar.gz ../../
+
+      - name: Update Nightly Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f nightly
+          git push origin nightly --force
+
+      - name: Publish Nightly Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: CayIME Nightly Build
+          body: |
+            Bản build Nightly tự động cập nhật từ nhánh `main`.
+
+            ⚠️ **Cảnh báo**: Đây là phiên bản thử nghiệm (Experimental), có thể thiếu ổn định. Chủ yếu dành cho tính năng Fcitx5 Linux.
+          prerelease: true
+          files: cayime-fcitx5-linux.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

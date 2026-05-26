@@ -116,4 +116,15 @@ elseif(APPLE)
     
     # Compile options for minimal size on macOS
     target_compile_options(cay PRIVATE -Os -fno-exceptions -fno-rtti)
+
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    # Old uinput code was removed by the user. Fcitx5 is now the primary Linux target.
+endif()
+
+# ---------------------------------------------------------------------------
+# Fcitx5 Plugin (Optional on Linux)
+# ---------------------------------------------------------------------------
+option(BUILD_FCITX5 "Build Fcitx5 Plugin" OFF)
+if(BUILD_FCITX5)
+    add_subdirectory(src/platform/fcitx5)
 endif()

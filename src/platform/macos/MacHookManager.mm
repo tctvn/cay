@@ -8,6 +8,7 @@ namespace CayIME {
 
 extern Cay::TelexEngine g_engine;
 const int CAY_EVENT_MAGIC_FLAG = 9999;
+extern bool g_justInjected;
 bool g_enabled = true;
 
 static CFMachPortRef eventTap = NULL;
@@ -110,10 +111,19 @@ CGEventRef EventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         
         ce.handled = false;
         
+        g_justInjected = false;
         g_engine.OnKeyDown(ce);
         
         if (ce.handled) {
             return NULL; // Nuốt phím
+        } else if (g_justInjected) {
+            // CẢI TIẾN: Nếu engine KHÔNG nuốt event (như phím Space, Enter),
+            // nhưng engine ĐÃ gọi OnInjectText, các event thay thế sẽ bị OS đẩy vào trước.
+            // Điều này gây lỗi sýtem + Space -> ssystem trên Mac.
+            // Giải pháp: Nuốt event hiện tại, và tự POST lại nó để nó nằm SAU các event thay thế!
+            CGEventSetIntegerValueField(event, kCGEventSourceUserData, CAY_EVENT_MAGIC_FLAG);
+            CGEventPost(kCGHIDEventTap, event);
+            return NULL;
         }
     }
     

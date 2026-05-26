@@ -33,7 +33,7 @@ CayIME::InputHookManager* g_hookManager = nullptr;
 bool g_enabled = true;
 HICON g_iconOn = nullptr;
 HICON g_iconOff = nullptr;
-bool g_ctrl = false, g_win = false, g_alt = false, g_pendingToggle = false;
+bool g_pendingToggle = false;
 
 HICON CreateTrayIcon(COLORREF color) {
     int width = GetSystemMetrics(SM_CXSMICON);
@@ -150,10 +150,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         case IDM_AUTOSTART: ToggleAutoStart(); break;
         case IDM_ABOUT:
             MessageBoxW(hWnd, 
-                L"Cay \u2013 B\u1ed9 g\u00f5 ti\u1ebfng Vi\u1ec7t Telex v1.0\n\n"
+                L"Cay \u2013 B\u1ed9 g\u00f5 ti\u1ebfng Vi\u1ec7t Telex v1.0.1\n\n"
                 L"Ctrl+Shift = B\u1eadt / T\u1eaft\n\n"
                 L"aa\u2192\u00e2  aw\u2192\u0103  dd\u2192\u0111  ee\u2192\u00ea  oo\u2192\u00f4  ow\u2192\u01a1  uw\u2192\u01b0\n"
-                L"s=s\u1eafc  f=huy\u1ec1n  r=h\u1ecfi  x=ng\u00e3  j=n\u1eb7ng\n\nLicense: GPL-3.0",
+                L"s=s\u1eafc  f=huy\u1ec1n  r=h\u1ecfi  x=ng\u00e3  j=n\u1eb7ng\n\n"
+                L"Source: github.com/tctvn/cay\n"
+                L"License: GPL-3.0",
                 L"Gi\u1edbi thi\u1ec7u", MB_OK | MB_ICONINFORMATION);
             break;
         case IDM_EXIT:
@@ -194,24 +196,24 @@ Cay::KeyCode MapVKToKeyCode(DWORD vk) {
 void OnKeyDownHook(CayIME::InputHookManager* sender, CayIME::HookKeyEventArgs& e) {
     if (e.extraInfo == CayIME::InputInjector::MAGIC_EXTRA_INFO) return;
 
-    if (e.keyCode == VK_LCONTROL || e.keyCode == VK_RCONTROL) {
-        g_ctrl = true; g_engine.ResetFull(); return;
-    }
-    if (e.keyCode == VK_LWIN || e.keyCode == VK_RWIN) {
-        g_win = true; g_engine.ResetFull(); return;
-    }
-    if (e.keyCode == VK_LMENU || e.keyCode == VK_RMENU) {
-        g_alt = true; g_engine.ResetFull(); return;
+    bool isCtrlPressed = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+    bool isAltPressed  = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
+    bool isWinPressed  = (GetAsyncKeyState(VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(VK_RWIN) & 0x8000) != 0;
+
+    if (isCtrlPressed && (e.keyCode == VK_LSHIFT || e.keyCode == VK_RSHIFT)) {
+        g_pendingToggle = true; 
+        g_engine.ResetFull();
+        return;
     }
 
-    if (g_ctrl && (e.keyCode == VK_LSHIFT || e.keyCode == VK_RSHIFT)) {
-        g_pendingToggle = true; return;
+    if (isCtrlPressed || isAltPressed || isWinPressed) {
+        g_engine.ResetFull();
+        return;
     }
 
-    if (g_ctrl || g_win || g_alt) return;
     if (!g_enabled) return;
 
-        Cay::KeyEvent ce;
+    Cay::KeyEvent ce;
     ce.keyCode = MapVKToKeyCode(e.keyCode);
     ce.character = e.character;
     ce.handled = false;
@@ -223,19 +225,16 @@ void OnKeyUpHook(CayIME::InputHookManager* sender, CayIME::HookKeyEventArgs& e) 
     if (e.extraInfo == CayIME::InputInjector::MAGIC_EXTRA_INFO) return;
 
     if (e.keyCode == VK_LCONTROL || e.keyCode == VK_RCONTROL) {
-        g_ctrl = false; 
         if (g_pendingToggle) { g_pendingToggle = false; Toggle(); } 
         return;
     }
-    if (e.keyCode == VK_LWIN || e.keyCode == VK_RWIN) { g_win = false; return; }
-    if (e.keyCode == VK_LMENU || e.keyCode == VK_RMENU) { g_alt = false; return; }
     
     if (g_pendingToggle && (e.keyCode == VK_LSHIFT || e.keyCode == VK_RSHIFT)) {
         g_pendingToggle = false; Toggle(); return;
     }
 
     if (!g_enabled) return;
-        Cay::KeyEvent ce;
+    Cay::KeyEvent ce;
     ce.keyCode = MapVKToKeyCode(e.keyCode);
     ce.character = e.character;
     ce.handled = false;
