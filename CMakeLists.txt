@@ -59,31 +59,30 @@ if(WIN32)
     )
 
     # -----------------------------------------------------------------------
-    # Full Target (cayy.exe) - C++/CLI WinForms
+    # Full Target (cayy.exe) - Native Win32 with Resource Dialog (.rc)
     # -----------------------------------------------------------------------
     set(PLATFORM_FULL_SOURCES
         src/platform/windows/full/main_full.cpp
+        src/platform/windows/full/cayy.rc
     )
     
     add_executable(cayy WIN32 ${CORE_SOURCES} ${PLATFORM_FULL_SOURCES} ${PLATFORM_SHARED_SOURCES})
-    target_include_directories(cayy PRIVATE src/core src/platform/windows/shared)
-    
-    # C++/CLI requires dynamic CRT (/MD) and specific flags
-    set_target_properties(cayy PROPERTIES
-        COMMON_LANGUAGE_RUNTIME ""
-        DOTNET_TARGET_FRAMEWORK_VERSION "v4.8"
-    )
+    target_include_directories(cayy PRIVATE src/core src/platform/windows/shared src/platform/windows/full)
     
     target_compile_options(cayy PRIVATE
-        /W3 /O2 /MD /DUNICODE /D_UNICODE /DWIN32 /D_WINDOWS /DNDEBUG
+        /W3 /O1 /Os /GS- /EHs-c- /GR- /Gy /MT
+        /DUNICODE /D_UNICODE /DWIN32 /D_WINDOWS /DNDEBUG
     )
     
     target_link_options(cayy PRIVATE
-        /ENTRY:wWinMainCRTStartup /SUBSYSTEM:WINDOWS /machine:x64
+        /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib
+        /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:vcruntimed.lib /NODEFAULTLIB:ucrtd.lib
+        /ENTRY:wWinMain /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /MANIFEST:NO /machine:x64
     )
     
     target_link_libraries(cayy PRIVATE
-        kernel32.lib user32.lib gdi32.lib shell32.lib advapi32.lib
+        kernel32.lib user32.lib gdi32.lib shell32.lib advapi32.lib comctl32.lib
+        libcmt.lib libvcruntime.lib libucrt.lib
     )
 
 elseif(APPLE)

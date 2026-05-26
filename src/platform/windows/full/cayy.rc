@@ -1,0 +1,16 @@
+#include <windows.h>
+#include "resource.h"
+
+// Set default font to MS Shell Dlg for proper UI scaling
+IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 250, 150
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "CayIME (Full) - Cấu hình"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "CayIME - Bộ gõ tiếng Việt siêu nhẹ",IDC_STATIC,10,10,200,10
+    AUTOCHECKBOX    "Bật bộ gõ (Ctrl+Shift để bật/tắt nhanh)",IDC_CHK_ENABLE,10,25,200,10
+    LTEXT           "Trạng thái: Đang hoạt động",IDC_LBL_STATUS,10,40,200,10
+    
+    // Nút đóng
+    DEFPUSHBUTTON   "Đóng",IDOK,190,125,50,15
+END
