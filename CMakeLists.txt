@@ -43,7 +43,7 @@ if(WIN32)
     string(REPLACE "/GR"   "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
     target_compile_options(cay PRIVATE
-        /W3 /O1 /Os /GS- /EHs-c- /GR- /Gy /MT
+        /W3 /O1 /Os /GS- /EHs-c- /GR- /Gy /MT /utf-8
         /DUNICODE /D_UNICODE /DWIN32 /D_WINDOWS /DNDEBUG
     )
 
@@ -71,7 +71,7 @@ if(WIN32)
     target_include_directories(cayy PRIVATE src/core src/platform/windows/shared src/platform/windows/full)
     
     target_compile_options(cayy PRIVATE
-        /W3 /O1 /Os /GS- /EHs-c- /GR- /Gy /MT
+        /W3 /O1 /Os /GS- /EHs-c- /GR- /Gy /MT /utf-8
         /DUNICODE /D_UNICODE /DWIN32 /D_WINDOWS /DNDEBUG
     )
     

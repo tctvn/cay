@@ -91,17 +91,12 @@ std::wstring GetHotkeyString() {
 INT_PTR CALLBACK SettingsDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_INITDIALOG:
-        CheckDlgButton(hDlg, IDC_CHK_ENABLE, g_enabled ? BST_CHECKED : BST_UNCHECKED);
         SetDlgItemTextW(hDlg, IDC_TXT_HOTKEY, GetHotkeyString().c_str());
         RefreshMacroList(hDlg);
         return (INT_PTR)TRUE;
 
     case WM_COMMAND:
-        if (LOWORD(wParam) == IDC_CHK_ENABLE) {
-            Toggle();
-            SetDlgItemTextW(hDlg, IDC_LBL_STATUS, g_enabled ? L"Đang hoạt động" : L"Đã tắt");
-        }
-        else if (LOWORD(wParam) == IDC_BTN_HOTKEY_SAVE) {
+        if (LOWORD(wParam) == IDC_BTN_HOTKEY_SAVE) {
             g_capturingHotkey = true;
             SetDlgItemTextW(hDlg, IDC_TXT_HOTKEY, L"[Nhấn phím tắt mới...]");
             SetFocus(GetDlgItem(hDlg, IDC_STATIC)); // Unfocus to avoid editing
@@ -238,12 +233,6 @@ void Toggle() {
     UpdateTrayIcon();
     g_engine.ResetFull();
     MessageBeep(MB_OK);
-    
-    // Update dialog checkbox if it is open
-    if (g_hDlg) {
-        CheckDlgButton(g_hDlg, IDC_CHK_ENABLE, g_enabled ? BST_CHECKED : BST_UNCHECKED);
-        SetDlgItemTextW(g_hDlg, IDC_LBL_STATUS, g_enabled ? L"Trạng thái: Đang hoạt động" : L"Trạng thái: Đã tắt");
-    }
 }
 
 void ShowContextMenu(POINT pt) {
@@ -251,8 +240,6 @@ void ShowContextMenu(POINT pt) {
     AppendMenuW(hMenu, MF_STRING, IDM_SETTINGS, L"Cấu hình (Bản Full)");
     AppendMenuW(hMenu, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(hMenu, MF_STRING | (IsAutoStart() ? MF_CHECKED : MF_UNCHECKED), IDM_AUTOSTART, L"Tự khởi động");
-    AppendMenuW(hMenu, MF_SEPARATOR, 0, nullptr);
-    AppendMenuW(hMenu, MF_STRING, IDM_ABOUT, L"Thông tin");
     AppendMenuW(hMenu, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(hMenu, MF_STRING, IDM_EXIT, L"Thoát");
 
@@ -281,16 +268,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         case IDM_TOGGLE: Toggle(); break;
         case IDM_SETTINGS: ShowSettings(); break;
         case IDM_AUTOSTART: ToggleAutoStart(); break;
-        case IDM_ABOUT:
-            MessageBoxW(hWnd, 
-                L"Cay (Bản Full) – Bộ gõ tiếng Việt siêu nhẹ v1.0.1\n\n"
-                L"Ctrl+Shift = Bật / Tắt\n\n"
-                L"aa→â  aw→ă  dd→đ  ee→ê  oo→ô  ow→ơ  uw→ư\n"
-                L"s=sắc  f=huyền  r=hỏi  x=ngã  j=nặng\n\n"
-                L"Source: github.com/tctvn/cay\n"
-                L"License: GPL-3.0",
-                L"Giới thiệu", MB_OK | MB_ICONINFORMATION);
-            break;
         case IDM_EXIT:
             PostQuitMessage(0);
             break;
