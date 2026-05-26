@@ -114,19 +114,27 @@ INT_PTR CALLBACK SettingsDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
                 SetFocus(GetDlgItem(hDlg, IDC_TXT_MACRO_KEY));
             }
         }
-        else if (LOWORD(wParam) == IDC_BTN_MACRO_DEL) {
+        else if (LOWORD(wParam) == IDC_LST_MACROS && HIWORD(wParam) == LBN_DBLCLK) {
             HWND hList = GetDlgItem(hDlg, IDC_LST_MACROS);
             int idx = (int)SendMessage(hList, LB_GETCURSEL, 0, 0);
             if (idx != LB_ERR) {
                 int len = (int)SendMessage(hList, LB_GETTEXTLEN, idx, 0);
                 std::wstring item(len, L'\0');
                 SendMessageW(hList, LB_GETTEXT, idx, (LPARAM)&item[0]);
-                size_t pos = item.find(L" \x2192");
+                size_t pos = item.find(L" \x2192 ");
                 if (pos != std::wstring::npos) {
                     std::wstring key = item.substr(0, pos);
+                    std::wstring val = item.substr(pos + 3);
+                    
+                    // Remove from dictionary
                     g_config.macros.erase(key);
                     ConfigManager::SaveConfig(g_config);
                     RefreshMacroList(hDlg);
+                    
+                    // Put into textboxes for editing
+                    SetDlgItemTextW(hDlg, IDC_TXT_MACRO_KEY, key.c_str());
+                    SetDlgItemTextW(hDlg, IDC_TXT_MACRO_VAL, val.c_str());
+                    SetFocus(GetDlgItem(hDlg, IDC_TXT_MACRO_VAL));
                 }
             }
         }
@@ -371,18 +379,46 @@ void OnKeyDownHook(CayIME::InputHookManager* sender, CayIME::HookKeyEventArgs& e
 void OnKeyUpHook(CayIME::InputHookManager* sender, CayIME::HookKeyEventArgs& e) {
     if (e.extraInfo == CayIME::InputInjector::MAGIC_EXTRA_INFO) return;
 
-    // Toggle on modifier release if vkCode == 0
-    if (g_config.vkCode == 0) {
-        bool wasCtrl = (e.keyCode == VK_LCONTROL || e.keyCode == VK_RCONTROL);
-        bool wasShift = (e.keyCode == VK_LSHIFT || e.keyCode == VK_RSHIFT);
-        bool wasAlt = (e.keyCode == VK_LMENU || e.keyCode == VK_RMENU);
+    bool isCtrlPressed = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+    bool isAltPressed  = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
+    bool isWinPressed  = (GetAsyncKeyState(VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(VK_RWIN) & 0x8000) != 0;
+    bool isShiftPressed = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+
+    if (g_capturingHotkey) {
+        // Nếu nhả một phím modifier, ta coi như người dùng muốn gán phím tắt chỉ gồm các modifier
+        bool wasCtrl = (e.keyCode == VK_CONTROL || e.keyCode == VK_LCONTROL || e.keyCode == VK_RCONTROL);
+        bool wasShift = (e.keyCode == VK_SHIFT || e.keyCode == VK_LSHIFT || e.keyCode == VK_RSHIFT);
+        bool wasAlt = (e.keyCode == VK_MENU || e.keyCode == VK_LMENU || e.keyCode == VK_RMENU);
         bool wasWin = (e.keyCode == VK_LWIN || e.keyCode == VK_RWIN);
         
-        bool isCtrlPressed = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
-        bool isAltPressed  = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
-        bool isWinPressed  = (GetAsyncKeyState(VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(VK_RWIN) & 0x8000) != 0;
-        bool isShiftPressed = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+        if (wasCtrl || wasShift || wasAlt || wasWin) {
+            g_config.ctrl = isCtrlPressed || wasCtrl;
+            g_config.shift = isShiftPressed || wasShift;
+            g_config.alt = isAltPressed || wasAlt;
+            g_config.win = isWinPressed || wasWin;
+            g_config.vkCode = 0; // Không có phím thường
+            
+            // Chỉ lưu nếu có ít nhất 1 modifier
+            if (g_config.ctrl || g_config.shift || g_config.alt || g_config.win) {
+                ConfigManager::SaveConfig(g_config);
+                g_capturingHotkey = false;
+                
+                if (g_hDlg) {
+                    SetDlgItemTextW(g_hDlg, IDC_TXT_HOTKEY, GetHotkeyString().c_str());
+                }
+            }
+            e.handled = true;
+            return;
+        }
+    }
 
+    // Toggle on modifier release if vkCode == 0
+    if (g_config.vkCode == 0) {
+        bool wasCtrl = (e.keyCode == VK_CONTROL || e.keyCode == VK_LCONTROL || e.keyCode == VK_RCONTROL);
+        bool wasShift = (e.keyCode == VK_SHIFT || e.keyCode == VK_LSHIFT || e.keyCode == VK_RSHIFT);
+        bool wasAlt = (e.keyCode == VK_MENU || e.keyCode == VK_LMENU || e.keyCode == VK_RMENU);
+        bool wasWin = (e.keyCode == VK_LWIN || e.keyCode == VK_RWIN);
+        
         if ((wasCtrl && g_config.ctrl && isShiftPressed == g_config.shift && isAltPressed == g_config.alt && isWinPressed == g_config.win) ||
             (wasShift && g_config.shift && isCtrlPressed == g_config.ctrl && isAltPressed == g_config.alt && isWinPressed == g_config.win) ||
             (wasAlt && g_config.alt && isCtrlPressed == g_config.ctrl && isShiftPressed == g_config.shift && isWinPressed == g_config.win) ||
