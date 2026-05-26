@@ -22,15 +22,7 @@ irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-windows.ps1
 curl -sL https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-mac.sh | bash
 ```
 
-**🐧 Linux / Fcitx5 (Bash):**
-> [!WARNING]
-> **Experimental / Nightly Build:** Phiên bản hỗ trợ Linux qua Fcitx5 hiện tại đang trong giai đoạn thử nghiệm. Có thể hoạt động chưa ổn định và không được đính kèm trong các bản phát hành chính thức.
-
-```bash
-wget -qO- https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-fcitx5.sh | bash
-```
-
-> **Ghi chú gỡ cài đặt:** Nếu muốn gỡ cài đặt, bạn có thể tải về repo và chạy các file tương ứng trong thư mục `scripts/` (`uninstall-windows.ps1`, `uninstall-mac.sh`, `uninstall-fcitx5.sh`).
+> **Ghi chú gỡ cài đặt:** Nếu muốn gỡ cài đặt, bạn có thể tải về repo và chạy các file tương ứng trong thư mục `scripts/` (`uninstall-windows.ps1` hoặc `uninstall-mac.sh`).
 
 ---
 
@@ -45,10 +37,6 @@ Nếu bạn không thích dùng script tự động, bạn có thể tải trự
   &nbsp;&nbsp;
   <a href="https://github.com/tctvn/cay/releases/latest/download/cay-mac.zip">
     <img src="https://img.shields.io/badge/T%E1%BA%A3i%20xu%E1%BB%91ng%20macOS-~40%20KB-brightgreen?style=for-the-badge&logo=apple&logoColor=white&color=000000" alt="Download macOS" />
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://github.com/tctvn/cay/releases/download/nightly/cayime-fcitx5-linux.tar.gz">
-    <img src="https://img.shields.io/badge/Nightly%20Linux-~60%20KB-orange?style=for-the-badge&logo=linux&logoColor=white&color=D93F0B" alt="Download Linux Nightly" />
   </a>
 </p>
 
@@ -95,6 +83,27 @@ cmake --build build --config Release
 * **Kết quả đầu ra:**
   * **Windows:** File thực thi tối ưu nằm tại `build/Release/cay.exe`.
   * **macOS:** App bundle cực gọn nhẹ nằm tại `build/cay.app`.
+
+---
+
+## 📦 Các Phiên Bản Khác (Mở Rộng)
+
+Ngoài phiên bản Minimal siêu gọn nhẹ (20-40KB) được giới thiệu ở trên, Cay còn cung cấp các biến thể khác với nhiều tính năng nâng cao:
+
+### 1. Cay (Bản Full dành cho Windows)
+Phiên bản này được tích hợp giao diện cấu hình trực quan, cho phép:
+- **Tùy chỉnh Phím tắt động:** Không bị gò bó vào `Ctrl+Shift`.
+- **Bảng Gõ tắt (Macro):** Gán từ viết tắt, tự động bung chữ tốc độ cao.
+- **Tải về trực tiếp:** [cayy.exe](https://github.com/tctvn/cay/releases/latest/download/cayy.exe)
+- **Hoặc cài đặt tự động qua PowerShell:**
+  ```powershell
+  irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-windows-full.ps1 | iex
+  ```
+
+### 2. CayIME Fcitx5 (Dành cho Linux)
+Phiên bản dạng Plugin cho engine Fcitx5 của Linux.
+- Tải file nhị phân tại nhánh `nightly`.
+- Xem kịch bản cài đặt tại `scripts/install-fcitx5.sh`.
 
 ---
 

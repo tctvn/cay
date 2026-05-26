@@ -24,7 +24,9 @@ jobs:
       - name: Publish Windows to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          files: build/Release/cay.exe
+          files: |
+            build/Release/cay.exe
+            build/Release/cayy.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

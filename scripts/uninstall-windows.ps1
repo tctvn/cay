@@ -16,6 +16,7 @@ $installDir = "$env:LOCALAPPDATA\CayIME"
 # Buoc 1: Dong cau trinh neu dang chay
 Write-Host "`n[1/4] Dong CayIME (neu co)..." -ForegroundColor Yellow
 Get-Process cay -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process cayy -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Seconds 1
 
 # Buoc 2: Xoa khoi dang ky start up (Registry)
