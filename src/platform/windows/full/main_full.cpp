@@ -232,7 +232,12 @@ void ToggleAutoStart() {
 
 void UpdateTrayIcon(bool isAdd = false) {
     g_nid.hIcon = g_enabled ? g_iconOn : g_iconOff;
-    lstrcpyW(g_nid.szTip, g_enabled ? L"Cay - Bật (Ctrl+Shift để tắt)" : L"Cay - Tắt (Ctrl+Shift để bật)");
+    std::wstring hotkeyStr = GetHotkeyString();
+    std::wstring tip = g_enabled ? L"Cay - Bật (" + hotkeyStr + L" để tắt)" : L"Cay - Tắt (" + hotkeyStr + L" để bật)";
+    
+    // limit length to 127 chars
+    wcsncpy_s(g_nid.szTip, tip.c_str(), 127);
+    
     Shell_NotifyIconW(isAdd ? NIM_ADD : NIM_MODIFY, &g_nid);
 }
 
@@ -245,7 +250,7 @@ void Toggle() {
 
 void ShowContextMenu(POINT pt) {
     HMENU hMenu = CreatePopupMenu();
-    AppendMenuW(hMenu, MF_STRING, IDM_SETTINGS, L"Cấu hình (Bản Full)");
+    AppendMenuW(hMenu, MF_STRING, IDM_SETTINGS, L"Cấu hình Cayy");
     AppendMenuW(hMenu, MF_SEPARATOR, 0, nullptr);
     AppendMenuW(hMenu, MF_STRING | (IsAutoStart() ? MF_CHECKED : MF_UNCHECKED), IDM_AUTOSTART, L"Tự khởi động");
     AppendMenuW(hMenu, MF_SEPARATOR, 0, nullptr);
@@ -338,6 +343,7 @@ void OnKeyDownHook(CayIME::InputHookManager* sender, CayIME::HookKeyEventArgs& e
             if (g_hDlg) {
                 SetDlgItemTextW(g_hDlg, IDC_TXT_HOTKEY, GetHotkeyString().c_str());
             }
+            UpdateTrayIcon();
             e.handled = true;
             return;
         }
@@ -406,6 +412,7 @@ void OnKeyUpHook(CayIME::InputHookManager* sender, CayIME::HookKeyEventArgs& e) 
                 if (g_hDlg) {
                     SetDlgItemTextW(g_hDlg, IDC_TXT_HOTKEY, GetHotkeyString().c_str());
                 }
+                UpdateTrayIcon();
             }
             e.handled = true;
             return;
