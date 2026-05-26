@@ -1030,6 +1030,24 @@ void TelexEngine::OnKeyDown(Cay::KeyEvent& e) {
     case Cay::KeyCode::Tab:
     case Cay::KeyCode::Space:
         if (_bufferCount > 0) {
+            // --- MACRO CHECK ---
+            if (OnMacroLookup) {
+                const wchar_t* macroResult = OnMacroLookup(_text);
+                if (macroResult) {
+                    // Cập nhật text thành kết quả macro
+                    int len = 0;
+                    while (macroResult[len] && len < MAX_BUFFER - 1) {
+                        _text[len] = macroResult[len];
+                        len++;
+                    }
+                    _text[len] = L'\0';
+                    _textLen = len;
+                    UpdateScreen(_text, _textLen);
+                    CommitWord();
+                    return;
+                }
+            }
+
             // --- TÍNH NĂNG 1: RESTORE ON SPACE ---
             // Kiểm tra xem từ hiện tại có dấu tiếng Việt không
             bool hasVietMark = CayData::HasVietnameseMark(_text, _textLen);
@@ -1066,8 +1084,25 @@ void TelexEngine::OnKeyDown(Cay::KeyEvent& e) {
     // -----------------------------------------------------------------------
     if (vk < Cay::KeyCode::KeyA || vk > Cay::KeyCode::KeyZ) {
         // Non-alpha printable (digits, punctuation) – commit word.
-        if (_bufferCount > 0) CommitWord();
-        else ResetFull();
+        if (_bufferCount > 0) {
+            // --- MACRO CHECK ---
+            if (OnMacroLookup) {
+                const wchar_t* macroResult = OnMacroLookup(_text);
+                if (macroResult) {
+                    int len = 0;
+                    while (macroResult[len] && len < MAX_BUFFER - 1) {
+                        _text[len] = macroResult[len];
+                        len++;
+                    }
+                    _text[len] = L'\0';
+                    _textLen = len;
+                    UpdateScreen(_text, _textLen);
+                }
+            }
+            CommitWord();
+        } else {
+            ResetFull();
+        }
         return;
     }
 

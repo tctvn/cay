@@ -63,6 +63,7 @@ if(WIN32)
     # -----------------------------------------------------------------------
     set(PLATFORM_FULL_SOURCES
         src/platform/windows/full/main_full.cpp
+        src/platform/windows/full/ConfigManager.cpp
         src/platform/windows/full/cayy.rc
     )
     
@@ -82,7 +83,7 @@ if(WIN32)
     
     target_link_libraries(cayy PRIVATE
         kernel32.lib user32.lib gdi32.lib shell32.lib advapi32.lib comctl32.lib
-        libcmt.lib libvcruntime.lib libucrt.lib
+        libcmt.lib libvcruntime.lib libucrt.lib libcpmt.lib
     )
 
 elseif(APPLE)

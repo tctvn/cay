@@ -1,9 +1,14 @@
-#ifndef RESOURCE_H
-#define RESOURCE_H
-
 #define IDD_SETTINGS_DIALOG 101
 #define IDC_CHK_ENABLE      1001
 #define IDC_LBL_STATUS      1002
-#define IDC_STATIC          -1
 
-#endif // RESOURCE_H
+#define IDC_LST_MACROS      1003
+#define IDC_TXT_MACRO_KEY   1004
+#define IDC_TXT_MACRO_VAL   1005
+#define IDC_BTN_MACRO_ADD   1006
+#define IDC_BTN_MACRO_DEL   1007
+
+#define IDC_TXT_HOTKEY      1008
+#define IDC_BTN_HOTKEY_SAVE 1009
+
+#define IDC_STATIC          -1

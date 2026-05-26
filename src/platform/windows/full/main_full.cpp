@@ -7,6 +7,7 @@
 #include "KeyboardHookManager.h"
 #include "InputInjector.h"
 #include "resource.h"
+#include "ConfigManager.h"
 
 #pragma comment(linker, "/NODEFAULTLIB")
 #pragma comment(linker, "/OPT:REF")
@@ -36,26 +37,108 @@ CayIME::InputHookManager* g_hookManager = nullptr;
 bool g_enabled = true;
 HICON g_iconOn = nullptr;
 HICON g_iconOff = nullptr;
-bool g_pendingToggle = false;
+
+ConfigData g_config;
+bool g_capturingHotkey = false;
 
 // Forward declarations
 void Toggle();
 
-// Dialog Procedure cho Settings
+// Macro lookup callback
+const wchar_t* MacroLookupCallback(const wchar_t* input) {
+    if (!input) return nullptr;
+    auto it = g_config.macros.find(input);
+    if (it != g_config.macros.end()) {
+        return it->second.c_str();
+    }
+    return nullptr;
+}
+
+// Refresh Macro ListBox
+void RefreshMacroList(HWND hDlg) {
+    HWND hList = GetDlgItem(hDlg, IDC_LST_MACROS);
+    SendMessage(hList, LB_RESETCONTENT, 0, 0);
+    for (const auto& pair : g_config.macros) {
+        std::wstring item = pair.first + L" \x2192 " + pair.second; // Mũi tên ->
+        SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)item.c_str());
+    }
+}
+
+// Format Hotkey String
+std::wstring GetHotkeyString() {
+    std::wstring s;
+    if (g_config.ctrl) s += L"Ctrl + ";
+    if (g_config.shift) s += L"Shift + ";
+    if (g_config.alt) s += L"Alt + ";
+    if (g_config.win) s += L"Win + ";
+    if (g_config.vkCode != 0 && g_config.vkCode != VK_CONTROL && g_config.vkCode != VK_LCONTROL && g_config.vkCode != VK_RCONTROL &&
+        g_config.vkCode != VK_SHIFT && g_config.vkCode != VK_LSHIFT && g_config.vkCode != VK_RSHIFT &&
+        g_config.vkCode != VK_MENU && g_config.vkCode != VK_LMENU && g_config.vkCode != VK_RMENU &&
+        g_config.vkCode != VK_LWIN && g_config.vkCode != VK_RWIN) {
+        wchar_t name[64];
+        if (GetKeyNameTextW(MapVirtualKeyW(g_config.vkCode, MAPVK_VK_TO_VSC) << 16, name, 64) > 0) {
+            s += name;
+        } else {
+            s += L"Key(" + std::to_wstring(g_config.vkCode) + L")";
+        }
+    } else {
+        if (!s.empty()) s.pop_back(), s.pop_back(), s.pop_back();
+    }
+    if (s.empty()) return L"None";
+    return s;
+}
+
 INT_PTR CALLBACK SettingsDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_INITDIALOG:
         CheckDlgButton(hDlg, IDC_CHK_ENABLE, g_enabled ? BST_CHECKED : BST_UNCHECKED);
+        SetDlgItemTextW(hDlg, IDC_TXT_HOTKEY, GetHotkeyString().c_str());
+        RefreshMacroList(hDlg);
         return (INT_PTR)TRUE;
 
     case WM_COMMAND:
         if (LOWORD(wParam) == IDC_CHK_ENABLE) {
             Toggle();
-            SetDlgItemTextW(hDlg, IDC_LBL_STATUS, g_enabled ? L"Trạng thái: Đang hoạt động" : L"Trạng thái: Đã tắt");
+            SetDlgItemTextW(hDlg, IDC_LBL_STATUS, g_enabled ? L"Đang hoạt động" : L"Đã tắt");
         }
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
+        else if (LOWORD(wParam) == IDC_BTN_HOTKEY_SAVE) {
+            g_capturingHotkey = true;
+            SetDlgItemTextW(hDlg, IDC_TXT_HOTKEY, L"[Nhấn phím tắt mới...]");
+            SetFocus(GetDlgItem(hDlg, IDC_STATIC)); // Unfocus to avoid editing
+        }
+        else if (LOWORD(wParam) == IDC_BTN_MACRO_ADD) {
+            wchar_t key[64], val[128];
+            GetDlgItemTextW(hDlg, IDC_TXT_MACRO_KEY, key, 64);
+            GetDlgItemTextW(hDlg, IDC_TXT_MACRO_VAL, val, 128);
+            if (wcslen(key) > 0 && wcslen(val) > 0) {
+                g_config.macros[key] = val;
+                ConfigManager::SaveConfig(g_config);
+                RefreshMacroList(hDlg);
+                SetDlgItemTextW(hDlg, IDC_TXT_MACRO_KEY, L"");
+                SetDlgItemTextW(hDlg, IDC_TXT_MACRO_VAL, L"");
+                SetFocus(GetDlgItem(hDlg, IDC_TXT_MACRO_KEY));
+            }
+        }
+        else if (LOWORD(wParam) == IDC_BTN_MACRO_DEL) {
+            HWND hList = GetDlgItem(hDlg, IDC_LST_MACROS);
+            int idx = (int)SendMessage(hList, LB_GETCURSEL, 0, 0);
+            if (idx != LB_ERR) {
+                int len = (int)SendMessage(hList, LB_GETTEXTLEN, idx, 0);
+                std::wstring item(len, L'\0');
+                SendMessageW(hList, LB_GETTEXT, idx, (LPARAM)&item[0]);
+                size_t pos = item.find(L" \x2192");
+                if (pos != std::wstring::npos) {
+                    std::wstring key = item.substr(0, pos);
+                    g_config.macros.erase(key);
+                    ConfigManager::SaveConfig(g_config);
+                    RefreshMacroList(hDlg);
+                }
+            }
+        }
+        else if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
             DestroyWindow(hDlg);
             g_hDlg = nullptr;
+            g_capturingHotkey = false;
             return (INT_PTR)TRUE;
         }
         break;
@@ -249,11 +332,48 @@ void OnKeyDownHook(CayIME::InputHookManager* sender, CayIME::HookKeyEventArgs& e
     bool isCtrlPressed = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
     bool isAltPressed  = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
     bool isWinPressed  = (GetAsyncKeyState(VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(VK_RWIN) & 0x8000) != 0;
+    bool isShiftPressed = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
 
-    if (isCtrlPressed && (e.keyCode == VK_LSHIFT || e.keyCode == VK_RSHIFT)) {
-        g_pendingToggle = true; 
-        g_engine.ResetFull();
-        return;
+    // Bắt phím tắt nếu đang ở chế độ capture
+    if (g_capturingHotkey) {
+        if (e.keyCode != VK_CONTROL && e.keyCode != VK_LCONTROL && e.keyCode != VK_RCONTROL &&
+            e.keyCode != VK_SHIFT && e.keyCode != VK_LSHIFT && e.keyCode != VK_RSHIFT &&
+            e.keyCode != VK_MENU && e.keyCode != VK_LMENU && e.keyCode != VK_RMENU &&
+            e.keyCode != VK_LWIN && e.keyCode != VK_RWIN) {
+            
+            g_config.ctrl = isCtrlPressed;
+            g_config.shift = isShiftPressed;
+            g_config.alt = isAltPressed;
+            g_config.win = isWinPressed;
+            g_config.vkCode = e.keyCode;
+            
+            ConfigManager::SaveConfig(g_config);
+            g_capturingHotkey = false;
+            
+            if (g_hDlg) {
+                SetDlgItemTextW(g_hDlg, IDC_TXT_HOTKEY, GetHotkeyString().c_str());
+            }
+            e.handled = true;
+            return;
+        }
+    }
+
+    // Kiểm tra xem có đúng phím tắt bật/tắt không
+    bool matchCtrl = (g_config.ctrl == isCtrlPressed);
+    bool matchShift = (g_config.shift == isShiftPressed);
+    bool matchAlt = (g_config.alt == isAltPressed);
+    bool matchWin = (g_config.win == isWinPressed);
+    
+    // Nếu hotkey chỉ là modifier (ví dụ Ctrl+Shift) thì vkCode = 0
+    if (g_config.vkCode == 0) {
+        // Chờ nhả phím (KeyUp) để thực thi toggle với modifier only
+    } else {
+        // Phím có vkCode cụ thể
+        if (matchCtrl && matchShift && matchAlt && matchWin && e.keyCode == g_config.vkCode) {
+            Toggle();
+            e.handled = true;
+            return;
+        }
     }
 
     if (isCtrlPressed || isAltPressed || isWinPressed) {
@@ -274,13 +394,26 @@ void OnKeyDownHook(CayIME::InputHookManager* sender, CayIME::HookKeyEventArgs& e
 void OnKeyUpHook(CayIME::InputHookManager* sender, CayIME::HookKeyEventArgs& e) {
     if (e.extraInfo == CayIME::InputInjector::MAGIC_EXTRA_INFO) return;
 
-    if (e.keyCode == VK_LCONTROL || e.keyCode == VK_RCONTROL) {
-        if (g_pendingToggle) { g_pendingToggle = false; Toggle(); } 
-        return;
-    }
-    
-    if (g_pendingToggle && (e.keyCode == VK_LSHIFT || e.keyCode == VK_RSHIFT)) {
-        g_pendingToggle = false; Toggle(); return;
+    // Toggle on modifier release if vkCode == 0
+    if (g_config.vkCode == 0) {
+        bool wasCtrl = (e.keyCode == VK_LCONTROL || e.keyCode == VK_RCONTROL);
+        bool wasShift = (e.keyCode == VK_LSHIFT || e.keyCode == VK_RSHIFT);
+        bool wasAlt = (e.keyCode == VK_LMENU || e.keyCode == VK_RMENU);
+        bool wasWin = (e.keyCode == VK_LWIN || e.keyCode == VK_RWIN);
+        
+        bool isCtrlPressed = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
+        bool isAltPressed  = (GetAsyncKeyState(VK_MENU) & 0x8000) != 0;
+        bool isWinPressed  = (GetAsyncKeyState(VK_LWIN) & 0x8000) != 0 || (GetAsyncKeyState(VK_RWIN) & 0x8000) != 0;
+        bool isShiftPressed = (GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0;
+
+        if ((wasCtrl && g_config.ctrl && isShiftPressed == g_config.shift && isAltPressed == g_config.alt && isWinPressed == g_config.win) ||
+            (wasShift && g_config.shift && isCtrlPressed == g_config.ctrl && isAltPressed == g_config.alt && isWinPressed == g_config.win) ||
+            (wasAlt && g_config.alt && isCtrlPressed == g_config.ctrl && isShiftPressed == g_config.shift && isWinPressed == g_config.win) ||
+            (wasWin && g_config.win && isCtrlPressed == g_config.ctrl && isShiftPressed == g_config.shift && isAltPressed == g_config.alt)) 
+        {
+            Toggle();
+            return;
+        }
     }
 
     if (!g_enabled) return;
@@ -340,7 +473,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdL
     // Check first launch
     HKEY hKeyFirst;
     if (RegOpenKeyExW(HKEY_CURRENT_USER, L"SOFTWARE\\CayIME", 0, KEY_READ, &hKeyFirst) != ERROR_SUCCESS) {
-        if (MessageBoxW(nullptr, L"B\u1ea1n c\u00f3 mu\u1ed1n Cay t\u1ef1 \u0111\u1ed9ng ch\u1ea1y khi kh\u1edfi \u0111\u1ed9ng m\u00e1y kh\u00f4ng?", L"Cay - L\u1ea7n ch\u1ea1y \u0111\u1ea7u ti\u00ean", MB_YESNO | MB_ICONQUESTION) == IDYES) {
+        if (MessageBoxW(nullptr, L"Bạn có muốn Cay tự động chạy khi khởi động máy không?", L"Cay - Lần chạy đầu tiên", MB_YESNO | MB_ICONQUESTION) == IDYES) {
             if (!IsAutoStart()) ToggleAutoStart();
         }
         HKEY hKeyWrite;
@@ -353,11 +486,15 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdL
         RegCloseKey(hKeyFirst);
     }
 
+    // Load Config and Macro
+    g_config = ConfigManager::LoadConfig();
+
     // Bắt đầu Hooks
     g_hookManager = new CayIME::InputHookManager();
     g_hookManager->KeyDown = OnKeyDownHook;
     g_hookManager->KeyUp = OnKeyUpHook;
     g_engine.OnInjectText = CayIME::InputInjector::ReplaceText;
+    g_engine.OnMacroLookup = MacroLookupCallback;
     g_hookManager->MouseClick = OnMouseClickHook;
 
     // Message Loop
