@@ -54,8 +54,8 @@ void InputInjector::ReplaceText(int backspaceCount, const wchar_t* newText, int 
     // nó không bao giờ flash trên màn hình và safely clears bất kỳ selection autocomplete nào.
     bool useDummy = (backspaceCount > 0);
     if (useDummy) {
-        FillUnicodeInput(&inputs[idx++], L'a', 0);               // Dummy down
-        FillUnicodeInput(&inputs[idx++], L'a', KEYEVENTF_KEYUP); // Dummy up
+        FillUnicodeInput(&inputs[idx++], L'~', 0);               // Dummy down
+        FillUnicodeInput(&inputs[idx++], L'~', KEYEVENTF_KEYUP); // Dummy up
     }
 
     // 2. DELETION (Xóa dummy + các ký tự gốc)

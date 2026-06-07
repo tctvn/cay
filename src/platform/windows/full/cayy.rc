@@ -1,0 +1,56 @@
+#pragma code_page(65001)
+#include <windows.h>
+#include "resource.h"
+
+// Set default font to MS Shell Dlg for proper UI scaling
+IDD_SETTINGS_DIALOG DIALOGEX 0, 0, 300, 160
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "CayIME (Full) - Cấu hình"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LTEXT           "CayIME - Bộ gõ tiếng Việt siêu nhẹ",IDC_STATIC,10,10,200,10
+    
+    GROUPBOX        "Phím tắt bật/tắt",IDC_STATIC,10,25,280,35
+    EDITTEXT        IDC_TXT_HOTKEY,20,38,180,14,ES_AUTOHSCROLL | ES_READONLY
+    PUSHBUTTON      "Lưu phím",IDC_BTN_HOTKEY_SAVE,210,38,70,14
+    
+    GROUPBOX        "Tính năng bổ sung",IDC_STATIC,10,65,280,55
+    AUTOCHECKBOX    "Tự khôi phục từ gõ sai thành phím thô",IDC_CHK_AUTO_RESTORE,20,78,200,10
+    PUSHBUTTON      "Cấu hình Bảng gõ tắt...",IDC_BTN_OPEN_MACRO,20,95,120,20,WS_TABSTOP
+    PUSHBUTTON      "Ứng dụng ngoại trừ...",IDC_BTN_OPEN_EXCLUDE,150,95,130,20,WS_TABSTOP
+
+    LTEXT           "Tải bản mới nhất: github.com/tctvn/cay",IDC_STATIC,10,130,180,10
+    LTEXT           "Giấy phép: GPL-3.0",IDC_STATIC,10,142,180,10
+
+    // Nút đóng
+    DEFPUSHBUTTON   "Đóng",IDOK,240,135,50,15
+END
+
+IDD_MACRO_DIALOG DIALOGEX 0, 0, 300, 160
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Bảng Gõ Tắt (Macro)"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LST_MACROS,10,10,280,90,LBS_SORT | LBS_NOINTEGRALHEIGHT | LBS_NOTIFY | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "(Nhấp đúp một mục ở trên để xoá/sửa)",IDC_STATIC,10,105,280,10
+    LTEXT           "Gõ:",IDC_STATIC,10,122,20,10
+    EDITTEXT        IDC_TXT_MACRO_KEY,30,120,55,14,ES_AUTOHSCROLL | WS_TABSTOP
+    LTEXT           "Thay bằng:",IDC_STATIC,90,122,40,10
+    EDITTEXT        IDC_TXT_MACRO_VAL,135,120,85,14,ES_AUTOHSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Cập nhật",IDC_BTN_MACRO_ADD,230,120,60,14,WS_TABSTOP
+    
+    DEFPUSHBUTTON   "Đóng",IDOK,240,140,50,15
+END
+
+IDD_EXCLUDE_DIALOG DIALOGEX 0, 0, 300, 150
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Danh sách loại trừ"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    AUTOCHECKBOX    "Tự động ghi nhớ khi dùng phím tắt tắt bộ gõ",IDC_CHK_AUTO_REMEMBER,10,10,280,10
+    LISTBOX         IDC_LST_DISABLED_APPS,10,25,280,80,LBS_SORT | LBS_NOINTEGRALHEIGHT | LBS_NOTIFY | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "(Nhấp đúp một mục ở trên để xoá khỏi danh sách)",IDC_STATIC,10,112,180,10
+    PUSHBUTTON      "Thêm ứng dụng...",IDC_BTN_ADD_APP,200,110,90,14,WS_TABSTOP
+    
+    DEFPUSHBUTTON   "Đóng",IDOK,240,130,50,15
+END

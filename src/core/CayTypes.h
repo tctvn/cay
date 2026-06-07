@@ -17,9 +17,9 @@ namespace Cay {
 
     // Sự kiện phím - chứa thông tin về phím được nhấn
     struct KeyEvent {
-        KeyCode keyCode;          // Mã phím
-        wchar_t character;        // Ký tự Unicode đã chuyển đổi
-        bool handled;             // Đã xử lý hay chưa
+        KeyCode keyCode = KeyCode::Unknown;          // Mã phím
+        wchar_t character = 0;        // Ký tự Unicode đã chuyển đổi
+        bool handled = false;             // Đã xử lý hay chưa
     };
 
     // Hàm callback để inject text - được gọi khi cần thay thế text

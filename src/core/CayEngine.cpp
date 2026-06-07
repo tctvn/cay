@@ -134,6 +134,33 @@ void TelexEngine::ReplayKey(wchar_t ch) {
             _text[_textLen]   = L'\0';
         }
     }
+
+    // --- BÙ DẤU Ư CHO UƠ KHI CÓ PHỤ ÂM CUỐI ---
+    if (!bypass && _textLen >= 3) {
+        for (int i = 0; i < _textLen - 1; i++) {
+            wchar_t v1 = ToLowerViet(CayData::StripTone(_text[i]));
+            wchar_t v2 = ToLowerViet(CayData::StripTone(_text[i+1]));
+            if (v1 == L'u' && v2 == L'\u01a1') { // uơ
+                // Kiểm tra xem có phụ âm (hoặc ký tự bất kỳ không phải nguyên âm) sau ơ hay không
+                bool hasAnyCharAfter = (i + 1 < _textLen - 1);
+                if (hasAnyCharAfter) {
+                    // Biến đổi u -> ư
+                    bool isUpper = (_text[i] == ToUpperViet(_text[i]) && _text[i] != ToLowerViet(_text[i]));
+                    wchar_t prevBase = CayData::StripTone(_text[i]);
+                    int prevTone = 0;
+                    for (int t = 1; t <= 5; t++) {
+                        if (CayData::GetToneMark(prevBase, t) == _text[i] || 
+                            CayData::GetToneMark(ToLowerViet(prevBase), t) == ToLowerViet(_text[i])) {
+                            prevTone = t;
+                            break;
+                        }
+                    }
+                    wchar_t newPrevBase = isUpper ? L'\u01AF' : L'\u01b0'; // Ư/ư
+                    _text[i] = prevTone ? CayData::GetToneMark(newPrevBase, prevTone) : newPrevBase;
+                }
+            }
+        }
+    }
 }
 
 void TelexEngine::UpdateScreen(const wchar_t* newOutput, int newOutputLen) {
@@ -208,6 +235,41 @@ void TelexEngine::FallbackToRaw() {
 }
 
 // ---------------------------------------------------------------------------
+// Lọc thô tiếng Anh (dùng cho tính năng Auto Restore)
+// ---------------------------------------------------------------------------
+static bool IsLikelyEnglishWord(const wchar_t* text, int len) {
+    if (len < 2) return false;
+
+    bool hasVowel = false;
+    int consonantCount = 0;
+
+    for (int i = 0; i < len; i++) {
+        wchar_t c = text[i];
+
+        // Lọc ký tự cấm (nếu còn sót lại từ tiếng Việt như đ)
+        if (c < L'a' || c > L'z') return false;
+
+        bool isVowel = (c == L'a' || c == L'e' || c == L'i' || c == L'o' || c == L'u' || c == L'y');
+        if (isVowel) {
+            hasVowel = true;
+            consonantCount = 0;
+        } else {
+            consonantCount++;
+            if (consonantCount > 4) return false; // Lọc giới hạn phụ âm
+        }
+
+        // Lọc chữ đúp cấm kỵ trong tiếng Anh
+        if (i < len - 1 && c == text[i + 1]) {
+            if (c == L'q' || c == L'h' || c == L'j' || c == L'k' || c == L'x' || c == L'v' || c == L'w' || c == L'y') {
+                return false;
+            }
+        }
+    }
+
+    return hasVowel;
+}
+
+// ---------------------------------------------------------------------------
 // LEVEL 2: Validator cấu trúc — Kiểm tra âm tiết bằng cách walk pointer
 // ---------------------------------------------------------------------------
 static bool IsCompleteSyllable(const wchar_t* s, int len) {
@@ -237,7 +299,7 @@ static bool IsCompleteSyllable(const wchar_t* s, int len) {
         L"oa", L"oai", L"o\u0103", L"oe", L"oi", L"oo",
         L"\u00f4i",
         L"\u01a1i",
-        L"ua", L"u\u00e2", L"u\u00ea", L"ui", L"u\u00f4", L"uy", L"uo", L"ue",
+        L"ua", L"u\u00e2", L"u\u00ea", L"ui", L"u\u00f4", L"uy", L"uo", L"ue", L"u\u01a1",
         L"\u01b0a", L"\u01b0i", L"\u01b0u", L"\u01b0\u01a1",
         L"ya", L"y\u00ea", L"ye",
         // 1 nguyên âm
@@ -634,7 +696,7 @@ bool TelexEngine::ApplyDoubleKeys(wchar_t key) {
         }
         
         if (!CayData::IsVowel(loBase) && loBase != L'd' && loBase != L'\u0111') {
-            break;
+            continue; // Bỏ dấu tại mọi nơi: keep searching backward even if we hit a consonant
         }
     }
     return false;
@@ -695,18 +757,49 @@ bool TelexEngine::ApplyHookKeys(wchar_t key) {
         }
 
         // 2. Apply logic
-        if (loBase == L'o' && j > 0 && ToLowerViet(CayData::StripTone(_text[j-1])) == L'u') {
-            // NẾU LÀ "QUO", BỎ QUA LOGIC BIẾN U->Ư
-            bool isQu = (j >= 2 && ToLowerViet(_text[j-2]) == L'q');
-            if (!isQu) {
-                wchar_t prevBase = CayData::StripTone(_text[j-1]);
-                bool prevUpper = (ToLowerViet(prevBase) != prevBase) || (prevBase >= L'A' && prevBase <= L'Z');
-                int prevTone = 0;
-                for (int t = 1; t <= 5; t++) {
-                    if (CayData::GetToneMark(prevBase, t) == _text[j-1] || CayData::GetToneMark(ToLowerViet(prevBase), t) == ToLowerViet(_text[j-1])) {
-                        prevTone = t; break;
+        if ((loBase == L'o' || loBase == L'\u01a1') && j > 0 && (ToLowerViet(CayData::StripTone(_text[j-1])) == L'u' || ToLowerViet(CayData::StripTone(_text[j-1])) == L'\u01b0')) {
+            
+            // Kiểm tra điều kiện uơ (th, h, q, kh và không có phụ âm cuối)
+            bool isUoException = false;
+            bool hasAnyCharAfter = (j < _textLen - 1);
+            if (!hasAnyCharAfter) {
+                int uIndex = j - 1;
+                if (uIndex > 0) {
+                    wchar_t p1 = ToLowerViet(CayData::StripTone(_text[uIndex - 1]));
+                    if (p1 == L'h') {
+                        isUoException = true;
+                        if (uIndex > 1) {
+                            wchar_t p2 = ToLowerViet(CayData::StripTone(_text[uIndex - 2]));
+                            if (p2 == L't' || p2 == L'k') {
+                                isUoException = true; // th, kh
+                            } else if (p2 >= L'a' && p2 <= L'z') {
+                                isUoException = false; // ch, ph, nh, gh...
+                            }
+                        }
+                    } else if (p1 == L'q') {
+                        isUoException = true; // q
                     }
                 }
+            }
+
+            wchar_t prevBase = CayData::StripTone(_text[j-1]);
+            bool prevUpper = (ToLowerViet(prevBase) != prevBase) || (prevBase >= L'A' && prevBase <= L'Z');
+            int prevTone = 0;
+            for (int t = 1; t <= 5; t++) {
+                if (CayData::GetToneMark(prevBase, t) == _text[j-1] || CayData::GetToneMark(ToLowerViet(prevBase), t) == ToLowerViet(_text[j-1])) {
+                    prevTone = t; break;
+                }
+            }
+
+            if (isUoException) {
+                // w chỉ bỏ dấu ơ thôi
+                wchar_t newPrevBase = prevUpper ? L'U' : L'u'; // U/u
+                wchar_t newCurrBase = isUpper ? L'\u01A0' : L'\u01a1'; // Ơ/ơ
+                _text[j-1] = prevTone ? CayData::GetToneMark(newPrevBase, prevTone) : newPrevBase;
+                _text[j]   = tone ? CayData::GetToneMark(newCurrBase, tone) : newCurrBase;
+                return true;
+            } else {
+                // ngoài quy tắt bỏ thêm dấu thêm ư
                 wchar_t newPrevBase = prevUpper ? L'\u01AF' : L'\u01b0'; // Ư/ư
                 wchar_t newCurrBase = isUpper ? L'\u01A0' : L'\u01a1'; // Ơ/ơ
                 _text[j-1] = prevTone ? CayData::GetToneMark(newPrevBase, prevTone) : newPrevBase;
@@ -751,7 +844,8 @@ bool TelexEngine::ApplyHookKeys(wchar_t key) {
         // Bỏ qua để vòng lặp lùi lại xử lý nguyên âm đứng trước (nhờ đó 'huou' + 'w' -> 'hươu')
         if (loBase == L'u' && j > 0) {
             wchar_t prevBase = ToLowerViet(CayData::StripTone(_text[j-1]));
-            if (CayData::IsVowel(prevBase) || prevBase == L'q') {
+            bool isGi = (prevBase == L'i' && j > 1 && ToLowerViet(CayData::StripTone(_text[j-2])) == L'g');
+            if (!isGi && (CayData::IsVowel(prevBase) || prevBase == L'q')) {
                 continue;
             }
         }
@@ -839,19 +933,48 @@ bool TelexEngine::ApplyToneMarks(int toneIndex) {
             wchar_t v1 = ToLowerViet(CayData::StripTone(_text[i]));
             wchar_t v2 = ToLowerViet(CayData::StripTone(_text[i+1]));
             
-            // Nếu phát hiện cặp "uo" đi liền nhau
-            if (v1 == L'u' && v2 == L'o') {
-                // Ngoại lệ: Nếu trước 'u' là 'q' (vd: "quốc"), thì KHÔNG được móc thành "qước"
-                bool isQu = (i > 0 && ToLowerViet(_text[i-1]) == L'q');
-                if (!isQu) {
+            // Cụm uo chỉ cần được bỏ 1 lần là thành ươ luôn
+            if ((v1 == L'u' || v1 == L'\u01b0') && (v2 == L'o' || v2 == L'\u01a1')) {
+                
+                // Kiểm tra điều kiện uơ (th, h, q, kh và không có phụ âm cuối)
+                bool isUoException = false;
+                bool hasAnyCharAfter = (i + 1 < _textLen - 1);
+                if (!hasAnyCharAfter) {
+                    if (i > 0) {
+                        wchar_t p1 = ToLowerViet(CayData::StripTone(_text[i - 1]));
+                        if (p1 == L'h') {
+                            isUoException = true;
+                            if (i > 1) {
+                                wchar_t p2 = ToLowerViet(CayData::StripTone(_text[i - 2]));
+                                if (p2 == L't' || p2 == L'k') {
+                                    isUoException = true; // th, kh
+                                } else if (p2 >= L'a' && p2 <= L'z') {
+                                    isUoException = false; // ch, ph, nh, gh...
+                                }
+                            }
+                        } else if (p1 == L'q') {
+                            isUoException = true; // q
+                        }
+                    }
+                }
+
+                if (isUoException) {
+                    if (v1 == L'u' && v2 == L'\u01a1') continue; // already uơ
+                    
                     bool isUpper1 = (_text[i] == ToUpperViet(_text[i]) && _text[i] != ToLowerViet(_text[i]));
                     bool isUpper2 = (_text[i+1] == ToUpperViet(_text[i+1]) && _text[i+1] != ToLowerViet(_text[i+1]));
                     
-                    // Ép buộc u -> ư và o -> ơ in place
+                    _text[i]   = isUpper1 ? L'U' : L'u'; // U / u
+                    _text[i+1] = isUpper2 ? L'\u01A0' : L'\u01a1'; // Ơ / ơ
+                    tonePos = -1;
+                } else {
+                    if (v1 == L'\u01b0' && v2 == L'\u01a1') continue; // already ươ
+
+                    bool isUpper1 = (_text[i] == ToUpperViet(_text[i]) && _text[i] != ToLowerViet(_text[i]));
+                    bool isUpper2 = (_text[i+1] == ToUpperViet(_text[i+1]) && _text[i+1] != ToLowerViet(_text[i+1]));
+                    
                     _text[i]   = isUpper1 ? L'\u01AF' : L'\u01B0'; // Ư / ư
                     _text[i+1] = isUpper2 ? L'\u01A0' : L'\u01a1'; // Ơ / ơ
-                    
-                    // Nếu chữ đã có dấu thanh từ trước, cần reset lại tonePos vì chữ cái gốc đã bị thay đổi
                     tonePos = -1; 
                 }
                 break;
@@ -1030,23 +1153,50 @@ void TelexEngine::OnKeyDown(Cay::KeyEvent& e) {
     case Cay::KeyCode::Tab:
     case Cay::KeyCode::Space:
         if (_bufferCount > 0) {
-            // --- TÍNH NĂNG 1: RESTORE ON SPACE ---
-            // Kiểm tra xem từ hiện tại có dấu tiếng Việt không
-            bool hasVietMark = CayData::HasVietnameseMark(_text, _textLen);
-            if (hasVietMark) {
-                // Trích xuất chuỗi chữ cái cơ bản (đã lột sạch dấu thanh và dấu mũ)
-                wchar_t textLo[MAX_BUFFER];
-                for (int i = 0; i < _textLen; i++) {
-                    textLo[i] = ToLowerViet(CayData::StripTone(_text[i])); // Giữ lại cấu trúc thuần
-                }
-                textLo[_textLen] = L'\0';
-                
-                // Đưa vào máy quét cấu trúc âm tiết. Nếu là từ vô nghĩa (như "vietlott")...
-                if (!IsCompleteSyllable(textLo, _textLen)) {
-                    FallbackToRaw(); // ...Lập tức xóa từ có dấu trên màn hình, nhả lại text thô!
+            // --- MACRO CHECK ---
+            if (OnMacroLookup) {
+                const wchar_t* macroResult = OnMacroLookup(_text);
+                if (macroResult) {
+                    // Cập nhật text thành kết quả macro
+                    int len = 0;
+                    while (macroResult[len] && len < MAX_BUFFER - 1) {
+                        _text[len] = macroResult[len];
+                        len++;
+                    }
+                    _text[len] = L'\0';
+                    _textLen = len;
+                    UpdateScreen(_text, _textLen);
+                    CommitWord();
+                    return;
                 }
             }
-            // -------------------------------------
+
+            if (autoRestoreEnabled) {
+                // --- TÍNH NĂNG 1: RESTORE ON SPACE ---
+                // Kiểm tra xem từ hiện tại có dấu tiếng Việt không
+                bool hasVietMark = CayData::HasVietnameseMark(_text, _textLen);
+                if (hasVietMark) {
+                    // Trích xuất chuỗi chữ cái cơ bản (đã lột sạch dấu thanh và dấu mũ)
+                    wchar_t textLo[MAX_BUFFER];
+                    int alphaLen = 0;
+                    for (int i = 0; i < _textLen; i++) {
+                        wchar_t c = ToLowerViet(CayData::StripTone(_text[i]));
+                        // Lọc để chỉ giữ lại chữ cái (a-z) hoặc chữ tiếng Việt (đ, nguyên âm)
+                        if (IsAlpha(c) || c == L'\u0111' /*đ*/ || CayData::IsVowel(c)) {
+                            textLo[alphaLen++] = c;
+                        }
+                    }
+                    textLo[alphaLen] = L'\0';
+                    
+                    // Nếu rớt cấu trúc âm tiết tiếng Việt -> check nếu giống tiếng Anh thì khôi phục
+                    if (alphaLen > 0 && !IsCompleteSyllable(textLo, alphaLen)) {
+                        if (IsLikelyEnglishWord(textLo, alphaLen)) {
+                            FallbackToRaw(); // Lập tức xóa từ có dấu trên màn hình, nhả lại text thô
+                        }
+                    }
+                }
+                // -------------------------------------
+            }
             CommitWord();
         }
         else ResetFull();
@@ -1065,10 +1215,31 @@ void TelexEngine::OnKeyDown(Cay::KeyEvent& e) {
     // 2. Only process printable ASCII alpha characters.
     // -----------------------------------------------------------------------
     if (vk < Cay::KeyCode::KeyA || vk > Cay::KeyCode::KeyZ) {
-        // Non-alpha printable (digits, punctuation) – commit word.
-        if (_bufferCount > 0) CommitWord();
-        else ResetFull();
-        return;
+        if (e.character == 0) {
+            ResetFull();
+            return;
+        }
+        
+        // Non-alpha printable (digits, punctuation)
+        if (_bufferCount > 0) {
+            // --- MACRO CHECK ---
+            if (OnMacroLookup) {
+                const wchar_t* macroResult = OnMacroLookup(_text);
+                if (macroResult) {
+                    int len = 0;
+                    while (macroResult[len] && len < MAX_BUFFER - 1) {
+                        _text[len] = macroResult[len];
+                        len++;
+                    }
+                    _text[len] = L'\0';
+                    _textLen = len;
+                    UpdateScreen(_text, _textLen);
+                    CommitWord();
+                    return;
+                }
+            }
+        }
+        // Fall through to put punctuation into buffer, maintaining 1-1 backspace mapping
     }
 
     // Determine the actual character pressed (respecting Shift).

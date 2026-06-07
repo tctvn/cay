@@ -22,58 +22,68 @@ set(CORE_SOURCES
 # OS-Specific setup
 # ---------------------------------------------------------------------------
 if(WIN32)
-    set(PLATFORM_SOURCES
-        src/platform/windows/main.cpp
-        src/platform/windows/InputInjector.cpp
-        src/platform/windows/KeyboardHookManager.cpp
-        src/platform/windows/no_crt.cpp
+    set(PLATFORM_MINIMAL_SOURCES
+        src/platform/windows/minimal/main.cpp
+        src/platform/windows/minimal/no_crt.cpp
     )
-    add_executable(cay WIN32 ${CORE_SOURCES} ${PLATFORM_SOURCES})
-    target_include_directories(cay PRIVATE src/core src/platform/windows)
+    
+    set(PLATFORM_SHARED_SOURCES
+        src/platform/windows/shared/InputInjector.cpp
+        src/platform/windows/shared/KeyboardHookManager.cpp
+    )
+
+    # -----------------------------------------------------------------------
+    # Minimal Target (cay.exe) - Pure Native, No CRT
+    # -----------------------------------------------------------------------
+    add_executable(cay WIN32 ${CORE_SOURCES} ${PLATFORM_MINIMAL_SOURCES} ${PLATFORM_SHARED_SOURCES})
+    target_include_directories(cay PRIVATE src/core src/platform/windows/shared)
 
     # Strip CMake-injected /EHsc and /GR so we can override them cleanly
     string(REPLACE "/EHsc" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     string(REPLACE "/GR"   "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
     target_compile_options(cay PRIVATE
-        /W3          # Warning level 3
-        /O1          # Optimise for size
-        /Os          # Favour small code
-        /GS-         # Disable buffer security check
-        /EHs-c-      # Disable C++ exceptions
-        /GR-         # Disable RTTI
-        /Gy          # Function-level linking (COMDAT)
-        /MT          # Static CRT → tells headers to use non-import signatures
-        /DUNICODE /D_UNICODE
-        /DWIN32 /D_WINDOWS
-        /DNDEBUG
+        /W3 /O1 /Os /GS- /EHs-c- /GR- /Gy /MT /utf-8
+        /DUNICODE /D_UNICODE /DWIN32 /D_WINDOWS /DNDEBUG
     )
 
     target_link_options(cay PRIVATE
-        # Exclude dynamic and debug CRT variants only
-        /NODEFAULTLIB:msvcrt.lib
-        /NODEFAULTLIB:msvcrtd.lib
-        /NODEFAULTLIB:libcmtd.lib
-        /NODEFAULTLIB:vcruntimed.lib
-        /NODEFAULTLIB:ucrtd.lib
-        /ENTRY:wWinMain          # Our GUI entry point
-        /SUBSYSTEM:WINDOWS
-        /OPT:REF                 # Strip unreferenced functions/data
-        /OPT:ICF                 # Merge identical COMDATs
-        /MANIFEST:NO             # No UAC manifest
-        /machine:x64
+        /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib
+        /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:vcruntimed.lib /NODEFAULTLIB:ucrtd.lib
+        /ENTRY:wWinMain /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /MANIFEST:NO /machine:x64
     )
 
-    # Win32 API + static CRT libraries (explicit list, no auto-link ambiguity)
     target_link_libraries(cay PRIVATE
-        kernel32.lib
-        user32.lib
-        gdi32.lib
-        shell32.lib
-        advapi32.lib
-        libcmt.lib        # Static CRT – wcslen, wcscpy_s, printf family
-        libvcruntime.lib  # CRT helpers – __chkstk, memset, memcpy etc.
-        libucrt.lib       # Universal CRT – wide-char, math etc.
+        kernel32.lib user32.lib gdi32.lib shell32.lib advapi32.lib
+        libcmt.lib libvcruntime.lib libucrt.lib
+    )
+
+    # -----------------------------------------------------------------------
+    # Full Target (cayy.exe) - Native Win32 with Resource Dialog (.rc)
+    # -----------------------------------------------------------------------
+    set(PLATFORM_FULL_SOURCES
+        src/platform/windows/full/main_full.cpp
+        src/platform/windows/full/ConfigManager.cpp
+        src/platform/windows/full/cayy.rc
+    )
+    
+    add_executable(cayy WIN32 ${CORE_SOURCES} ${PLATFORM_FULL_SOURCES} ${PLATFORM_SHARED_SOURCES})
+    target_include_directories(cayy PRIVATE src/core src/platform/windows/shared src/platform/windows/full)
+    
+    target_compile_options(cayy PRIVATE
+        /W3 /O1 /Os /GS- /EHs-c- /GR- /Gy /MT /utf-8
+        /DUNICODE /D_UNICODE /DWIN32 /D_WINDOWS /DNDEBUG
+    )
+    
+    target_link_options(cayy PRIVATE
+        /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcrtd.lib
+        /NODEFAULTLIB:libcmtd.lib /NODEFAULTLIB:vcruntimed.lib /NODEFAULTLIB:ucrtd.lib
+        /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /MANIFEST:NO /machine:x64
+    )
+    
+    target_link_libraries(cayy PRIVATE
+        kernel32.lib user32.lib gdi32.lib shell32.lib advapi32.lib comctl32.lib
+        libcmt.lib libvcruntime.lib libucrt.lib libcpmt.lib
     )
 
 elseif(APPLE)
@@ -96,7 +106,7 @@ elseif(APPLE)
     set_target_properties(cay PROPERTIES
         MACOSX_BUNDLE_GUI_IDENTIFIER "com.tctvn.cay"
         MACOSX_BUNDLE_BUNDLE_NAME "Cay"
-        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.6"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.3"
         MACOSX_BUNDLE_BUNDLE_VERSION "1"
         MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/macos/Info.plist.in
     )
