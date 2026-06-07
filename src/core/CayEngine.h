@@ -42,7 +42,12 @@ public:
     // Commit từ hiện tại: lưu state để recall, sau đó reset.
     void CommitWord();
 
+    typedef const wchar_t* (*MacroLookupFunc)(const wchar_t* input);
+    MacroLookupFunc OnMacroLookup = nullptr;
+
     InjectTextFunc OnInjectText = nullptr;
+
+    bool autoRestoreEnabled = true;
 
 private:
     MyKey _buffer[MAX_BUFFER];

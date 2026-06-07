@@ -31,29 +31,20 @@ static void PostUnicodeString(const UniChar* chars, size_t length) {
 void MacInputInjector::ReplaceText(int backspaceCount, const wchar_t* newText, int newTextLen) {
     g_justInjected = true;
 
-    int totalBackspaces = backspaceCount;
-    // 1. Nếu có xoá, chúng ta gửi một dummy keydown/up (chữ 'a' = 0x00) 
-    // để triệt tiêu popup gợi ý dấu của macOS (như trên Safari)
+    // Backspace × N: hoạt động đúng trên cả GUI text-field lẫn TTY (Terminal).
+    // Atomic và universal hơn Shift+Left (chỉ work trên GUI có concept selection).
     if (backspaceCount > 0) {
-        PostKeyboardEvent(0, true);
-        PostKeyboardEvent(0, false);
-        totalBackspaces += 1; // Xoá luôn cả phím dummy 'a' vừa thêm
+        for (int i = 0; i < backspaceCount; ++i) {
+            PostKeyboardEvent(51, true);   // kVK_Delete (Backspace)
+            PostKeyboardEvent(51, false);
+        }
     }
 
-    // 2. Gửi backspace
-    for (int i = 0; i < totalBackspaces; ++i) {
-        PostKeyboardEvent(51, true); // 51 là mã kVK_Delete (Backspace)
-        PostKeyboardEvent(51, false);
-    }
-
-    // 3. Gửi Unicode string mới
+    // Insert Unicode tại vị trí cursor (sau khi đã xoá N ký tự).
     if (newText != nullptr && newTextLen > 0) {
-        // wchar_t trên Mac là 32-bit (UTF-32), CGEventKeyboardSetUnicodeString cần UniChar (16-bit UTF-16)
         UniChar chars[64];
         int uniLen = 0;
         for (int i = 0; i < newTextLen && uniLen < 64; ++i) {
-            // Đơn giản hoá: giả sử ký tự nằm trong BMP (0x0000 - 0xFFFF)
-            // Tiếng Việt hoàn toàn nằm trong BMP nên an toàn
             chars[uniLen++] = (UniChar)newText[i];
         }
         PostUnicodeString(chars, uniLen);

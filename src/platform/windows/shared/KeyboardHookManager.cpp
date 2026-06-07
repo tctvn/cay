@@ -69,7 +69,12 @@ LRESULT CALLBACK InputHookManager::KbProc(int nCode, WPARAM wParam, LPARAM lPara
         bool upper = shifted ^ capsLk;
         ch = upper ? (wchar_t)vk : (wchar_t)(vk + 32);
     } else if (vk >= '0' && vk <= '9') {
-        ch = (wchar_t)vk;
+        bool shifted = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+        if (!shifted) {
+            ch = (wchar_t)vk;
+        } else {
+            ch = 0;
+        }
     }
 
     bool isDown = (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);

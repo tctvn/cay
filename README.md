@@ -12,25 +12,17 @@
 
 Mở Terminal/PowerShell và dán dòng lệnh tương ứng để tự động tải, cài đặt và cấu hình khởi động cùng hệ thống trong nháy mắt:
 
-**🪟 Windows (PowerShell):**
+**🪟 Windows (Bản Minimal):**
 ```powershell
 irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-windows.ps1 | iex
 ```
 
-**🍏 macOS (Terminal):**
+**🍏 macOS (Bản Minimal):**
 ```bash
 curl -sL https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-mac.sh | bash
 ```
 
-**🐧 Linux / Fcitx5 (Bash):**
-> [!WARNING]
-> **Experimental / Nightly Build:** Phiên bản hỗ trợ Linux qua Fcitx5 hiện tại đang trong giai đoạn thử nghiệm. Có thể hoạt động chưa ổn định và không được đính kèm trong các bản phát hành chính thức.
-
-```bash
-wget -qO- https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-fcitx5.sh | bash
-```
-
-> **Ghi chú gỡ cài đặt:** Nếu muốn gỡ cài đặt, bạn có thể tải về repo và chạy các file tương ứng trong thư mục `scripts/` (`uninstall-windows.ps1`, `uninstall-mac.sh`, `uninstall-fcitx5.sh`).
+> 💡 **Khám phá thêm:** Để xem toàn bộ hướng dẫn cài đặt cũng như **gỡ cài đặt** cho *tất cả các phiên bản* (Bao gồm bản Windows Full cấu hình phím tắt/macro và Linux Fcitx5), vui lòng xem chi tiết tại tab cài đặt riêng: **[👉 HƯỚNG DẪN CÀI ĐẶT & GỠ CÀI ĐẶT (INSTALL.md)](INSTALL.md)**.
 
 ---
 
@@ -45,10 +37,6 @@ Nếu bạn không thích dùng script tự động, bạn có thể tải trự
   &nbsp;&nbsp;
   <a href="https://github.com/tctvn/cay/releases/latest/download/cay-mac.zip">
     <img src="https://img.shields.io/badge/T%E1%BA%A3i%20xu%E1%BB%91ng%20macOS-~40%20KB-brightgreen?style=for-the-badge&logo=apple&logoColor=white&color=000000" alt="Download macOS" />
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://github.com/tctvn/cay/releases/download/nightly/cayime-fcitx5-linux.tar.gz">
-    <img src="https://img.shields.io/badge/Nightly%20Linux-~60%20KB-orange?style=for-the-badge&logo=linux&logoColor=white&color=D93F0B" alt="Download Linux Nightly" />
   </a>
 </p>
 
@@ -69,9 +57,9 @@ Nếu bạn không thích dùng script tự động, bạn có thể tải trự
 
 - 🚀 **Siêu Nhẹ (Zero-CRT):** Viết bằng C++ thuần túy, dung lượng siêu nhỏ (~20KB - 40KB), gần như không tốn RAM (< 1.5MB). Không chạy nền dịch vụ rác.
 - 🛠️ **Tạm biệt lỗi nuốt chữ:** Giải quyết triệt để lỗi mất ký tự hay nhảy con trỏ trên Chrome, VS Code, IntelliJ, v.v.
-- 🧠 **Smart Bypass (Nhận diện Code):** Tự động nhận diện cụm từ tiếng Anh, camelCase, snake_case để tự ngắt bỏ dấu tiếng Việt mà không cần chuyển E/V thủ công.
+- 🧠 **Smart Bypass & Auto Restore:** Tự động nhận diện cụm từ tiếng Anh (camelCase, snake_case) để ngưng bỏ dấu. Đặc biệt hỗ trợ khôi phục lại từ tiếng Anh khi lỡ gõ sai (nhấn Space), bao trọn mọi kiểu gõ từ văn bản hành chính chuẩn mực cho đến teencode (ví dụ: `trờiiiiiiiiiiiiiiii`) mà không bị cản trở.
 - 🚫 **Direct Input (Không Preedit):** Văn bản xuất hiện trực tiếp (không có nét gạch chân hay vùng nháp), không gây chớp giật màn hình khi gõ.
-- ⚙️ **Zero-Config:** Tải về bật lên là sử dụng ngay.
+- ⚙️ **Zero-Config:** Tải về bật lên là sử dụng ngay. Bản mini tích hợp sẵn toàn bộ cấu hình tối ưu nhất.
 - 🌐 **Đa Nền Tảng:** Hỗ trợ mượt mà Windows (10/11), macOS (Intel/Apple Silicon) và Linux (Fcitx5).
 
 ---
