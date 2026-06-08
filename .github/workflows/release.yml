@@ -20,6 +20,9 @@ jobs:
         run: |
           cmake -B build
           cmake --build build --config Release
+          cmake -A ARM64 -B build-arm64
+          cmake --build build-arm64 --config Release
+          mv build-arm64/Release/cay.exe build/Release/cay-arm.exe
 
       - name: Publish Windows to GitHub Releases
         uses: softprops/action-gh-release@v2
@@ -27,6 +30,7 @@ jobs:
           files: |
             build/Release/cay.exe
             build/Release/cayy.exe
+            build/Release/cay-arm.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

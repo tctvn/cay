@@ -107,11 +107,28 @@ bool CayData::IsValidNucleus(const wchar_t* s, int len) {
     return false;
 }
 
-// ---------------------------------------------------------------------------
-// GetToneIndex - Map phím Telex sang chỉ số dấu
-// Map phím Telex modifier sang chỉ số 0–5; trả về -1 nếu không phải phím dấu.
-// ---------------------------------------------------------------------------
-int CayData::GetToneIndex(wchar_t key) {
+int CayData::GetToneIndex(wchar_t key, InputMethod method) {
+    if (method == InputMethod::VNI) {
+        switch (key) {
+        case L'0': return 0;
+        case L'2': return 1; // Huyền
+        case L'1': return 2; // Sắc
+        case L'3': return 3; // Hỏi
+        case L'4': return 4; // Ngã
+        case L'5': return 5; // Nặng
+        }
+    } else if (method == InputMethod::VIQR || method == InputMethod::VIQRStar) {
+        switch (key) {
+        case L'0': return 0;
+        case L'`': return 1;
+        case L'\'': return 2;
+        case L'?': return 3;
+        case L'~': return 4;
+        case L'.': return 5;
+        }
+    }
+    
+    // Default Telex
     switch (key) {
     case L'z': case L'Z': return 0; // Xóa dấu  (flat)
     case L'f': case L'F': return 1; // Huyền

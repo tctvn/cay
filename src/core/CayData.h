@@ -31,9 +31,9 @@ public:
     // là một nguyên âm tiếng Việt hợp lệ.
     static bool IsValidNucleus(const wchar_t* s, int len);
 
-    // Map phím Telex modifier sang chỉ số dấu (0–5).
+    // Map phím modifier sang chỉ số dấu (0–5).
     // Trả về -1 nếu phím không phải là phím dấu.
-    static int  GetToneIndex(wchar_t key);
+    static int  GetToneIndex(wchar_t key, InputMethod method);
 
     // Trả về codepoint có dấu cho nguyên âm cơ bản + chỉ số dấu.
     // Trả về 0 nếu không có mapping.

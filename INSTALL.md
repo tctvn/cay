@@ -17,6 +17,21 @@ Phiên bản tối giản, siêu nhẹ (20KB), chỉ có tính năng gõ tiếng
 
 ---
 
+
+---
+
+## 🪟 Windows (Bản ARM64 - Tối ưu Snapdragon/Surface Pro X)
+Phiên bản dịch sang mã máy native dành riêng cho chip ARM, giúp đạt hiệu suất tối đa và tiết kiệm pin nhất có thể.
+
+* **Cài đặt:**
+  ```powershell
+  irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-windows-arm.ps1 | iex
+  ```
+* **Gỡ cài đặt:**
+  ```powershell
+  irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/uninstall-windows.ps1 | iex
+  ```
+
 ## 🪟 Windows (Bản Full - Có GUI & Macro)
 Phiên bản mở rộng, tích hợp thêm giao diện cấu hình trực quan và tính năng Bảng Gõ Tắt (Macro).
 
@@ -55,4 +70,18 @@ Phiên bản dạng Plugin dành riêng cho engine Fcitx5 trên Linux. *(Lưu ý
 * **Gỡ cài đặt:**
   ```bash
   wget -qO- https://raw.githubusercontent.com/tctvn/cay/main/scripts/uninstall-fcitx5.sh | bash
+  ```
+
+---
+
+## 🪟 Windows (Cay Classic - Nightly)
+Phiên bản cổ điển được giữ lại giao diện quen thuộc của UniKey, tối ưu cho người dùng thích hoài cổ.
+
+* **Cài đặt:**
+  ```powershell
+  irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/install-windows-classic.ps1 | iex
+  ```
+* **Gỡ cài đặt:**
+  ```powershell
+  irm https://raw.githubusercontent.com/tctvn/cay/main/scripts/uninstall-windows.ps1 | iex
   ```

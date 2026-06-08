@@ -9,7 +9,25 @@ permissions:
   contents: write
 
 jobs:
+  build-windows-classic:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Windows Classic (CMake)
+        run: |
+          cmake -B build
+          cmake --build build --config Release --target cay-classic
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cay-classic
+          path: build/Release/cay-classic.exe
+
   build-linux-fcitx5:
+    needs: build-windows-classic
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
@@ -42,6 +60,12 @@ jobs:
           git tag -f nightly
           git push origin nightly --force
 
+      - name: Download Windows Classic Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cay-classic
+          path: .
+
       - name: Publish Nightly Release
         uses: softprops/action-gh-release@v2
         with:
@@ -50,8 +74,10 @@ jobs:
           body: |
             Bản build Nightly tự động cập nhật từ nhánh `main`.
 
-            ⚠️ **Cảnh báo**: Đây là phiên bản thử nghiệm (Experimental), có thể thiếu ổn định. Chủ yếu dành cho tính năng Fcitx5 Linux.
+            ⚠️ **Cảnh báo**: Đây là phiên bản thử nghiệm (Experimental), có thể thiếu ổn định. Bao gồm bản Fcitx5 Linux và bản Classic cho Windows.
           prerelease: true
-          files: cayime-fcitx5-linux.tar.gz
+          files: |
+            cayime-fcitx5-linux.tar.gz
+            cay-classic.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
