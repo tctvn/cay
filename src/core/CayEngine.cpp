@@ -116,14 +116,31 @@ void TelexEngine::ReplayKey(wchar_t ch) {
     bool bypass = ShouldBypassWord();
     bool appliedModifier = false;
 
-    if (!bypass && (lo == L'a' || lo == L'e' || lo == L'o' || lo == L'd')) {
+    bool isDoubleKey = false;
+    bool isHookKey = false;
+
+    if (inputMethod == InputMethod::Telex) {
+        isDoubleKey = (lo == L'a' || lo == L'e' || lo == L'o' || lo == L'd');
+        isHookKey = (lo == L'w');
+    } else if (inputMethod == InputMethod::VNI) {
+        isDoubleKey = (lo == L'6' || lo == L'9');
+        isHookKey = (lo == L'7' || lo == L'8');
+    } else if (inputMethod == InputMethod::VIQR || inputMethod == InputMethod::VIQRStar) {
+        isDoubleKey = (lo == L'^' || lo == L'd' || lo == L'D');
+        if (inputMethod == InputMethod::VIQRStar) {
+            isDoubleKey = isDoubleKey || (lo == L'*');
+        }
+        isHookKey = (lo == L'+' || lo == L'(');
+    }
+
+    if (!bypass && isDoubleKey) {
         if (_textLen > 0 && ApplyDoubleKeys(ch)) appliedModifier = true;
     }
-    if (!bypass && !appliedModifier && lo == L'w' && _textLen > 0) {
+    if (!bypass && !appliedModifier && isHookKey && _textLen > 0) {
         if (ApplyHookKeys(ch)) appliedModifier = true;
     }
     if (!bypass && !appliedModifier) {
-        int ti = CayData::GetToneIndex(lo);
+        int ti = CayData::GetToneIndex(lo, inputMethod);
         if (ti >= 0 && _textLen > 0) {
             if (ApplyToneMarks(ti)) appliedModifier = true;
         }
@@ -631,14 +648,33 @@ void TelexEngine::StripAllTones() {
 }
 
 bool TelexEngine::ApplyDoubleKeys(wchar_t key) {
-    wchar_t loKey = ToLowerViet(key);
-    if (loKey != L'a' && loKey != L'e' && loKey != L'o' && loKey != L'd') return false;
+    wchar_t originalLoKey = ToLowerViet(key);
 
     for (int j = _textLen - 1; j >= 0; j--) {
         wchar_t target = _text[j];
         wchar_t baseTarget = CayData::StripTone(target);
         wchar_t loBase = ToLowerViet(baseTarget);
         bool isUpper = (ToLowerViet(target) != target) || (target >= L'A' && target <= L'Z');
+
+        wchar_t loKey = originalLoKey;
+        if (inputMethod == InputMethod::VNI) {
+            if (loKey == L'6' && (loBase == L'a' || loBase == L'\u00e2' || loBase == L'\u0103')) loKey = L'a';
+            else if (loKey == L'6' && (loBase == L'e' || loBase == L'\u00ea')) loKey = L'e';
+            else if (loKey == L'6' && (loBase == L'o' || loBase == L'\u00f4' || loBase == L'\u01a1')) loKey = L'o';
+            else if (loKey == L'9' && (loBase == L'd' || loBase == L'\u0111')) loKey = L'd';
+        } else if (inputMethod == InputMethod::VIQR || inputMethod == InputMethod::VIQRStar) {
+            if ((loKey == L'^' || loKey == L'*') && (loBase == L'a' || loBase == L'\u00e2' || loBase == L'\u0103')) loKey = L'a';
+            else if ((loKey == L'^' || loKey == L'*') && (loBase == L'e' || loBase == L'\u00ea')) loKey = L'e';
+            else if ((loKey == L'^' || loKey == L'*') && (loBase == L'o' || loBase == L'\u00f4' || loBase == L'\u01a1')) loKey = L'o';
+            else if ((loKey == L'd' || loKey == L'D') && (loBase == L'd' || loBase == L'\u0111')) loKey = L'd';
+        }
+
+        if (loKey != L'a' && loKey != L'e' && loKey != L'o' && loKey != L'd') {
+            if (!CayData::IsVowel(loBase) && loBase != L'd' && loBase != L'\u0111') {
+                continue;
+            }
+            continue;
+        }
 
         int tone = 0;
         for (int t = 1; t <= 5; t++) {
@@ -703,13 +739,31 @@ bool TelexEngine::ApplyDoubleKeys(wchar_t key) {
 }
 
 bool TelexEngine::ApplyHookKeys(wchar_t key) {
-    if (ToLowerViet(key) != L'w') return false;
+    wchar_t originalLoKey = ToLowerViet(key);
 
     for (int j = _textLen - 1; j >= 0; j--) {
         wchar_t target = _text[j];
         wchar_t baseTarget = CayData::StripTone(target);
         wchar_t loBase = ToLowerViet(baseTarget);
         bool isUpper = (ToLowerViet(target) != target) || (target >= L'A' && target <= L'Z');
+
+        wchar_t loKey = originalLoKey;
+        if (inputMethod == InputMethod::VNI) {
+            if (loKey == L'8' && (loBase == L'a' || loBase == L'\u0103' || loBase == L'\u00e2')) loKey = L'w';
+            else if (loKey == L'7' && (loBase == L'o' || loBase == L'\u01a1' || loBase == L'\u00f4')) loKey = L'w';
+            else if (loKey == L'8' && (loBase == L'u' || loBase == L'\u01b0')) loKey = L'w';
+        } else if (inputMethod == InputMethod::VIQR || inputMethod == InputMethod::VIQRStar) {
+            if (loKey == L'(' && (loBase == L'a' || loBase == L'\u0103' || loBase == L'\u00e2')) loKey = L'w';
+            else if (loKey == L'+' && (loBase == L'o' || loBase == L'\u01a1' || loBase == L'\u00f4')) loKey = L'w';
+            else if (loKey == L'+' && (loBase == L'u' || loBase == L'\u01b0')) loKey = L'w';
+        }
+
+        if (loKey != L'w') {
+            if (!CayData::IsVowel(loBase) && loBase != L'd' && loBase != L'\u0111') {
+                continue;
+            }
+            continue;
+        }
 
         int tone = 0;
         for (int t = 1; t <= 5; t++) {
@@ -1153,6 +1207,7 @@ void TelexEngine::OnKeyDown(Cay::KeyEvent& e) {
     case Cay::KeyCode::Tab:
     case Cay::KeyCode::Space:
         if (_bufferCount > 0) {
+            _text[_textLen] = L'\0';
             // --- MACRO CHECK ---
             if (OnMacroLookup) {
                 const wchar_t* macroResult = OnMacroLookup(_text);
@@ -1222,6 +1277,7 @@ void TelexEngine::OnKeyDown(Cay::KeyEvent& e) {
         
         // Non-alpha printable (digits, punctuation)
         if (_bufferCount > 0) {
+            _text[_textLen] = L'\0';
             // --- MACRO CHECK ---
             if (OnMacroLookup) {
                 const wchar_t* macroResult = OnMacroLookup(_text);

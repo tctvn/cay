@@ -1,0 +1,40 @@
+#ifndef _KEYCONS_H
+#define _KEYCONS_H 1
+
+#define MAX_MACRO_ITEMS 1000
+#define MACRO_MEM_SIZE 10240
+#define KEY_BUFSIZE 1024
+
+// charset ids from old unikey
+#define UNICODE_CHARSET 1
+#define VIQR_CHARSET 2
+#define DECOMPOSED_UNICODE_CHARSET 3
+#define TCVN3_CHARSET 4
+#define VNI_CHARSET 5
+#define VIETWARE_X_CHARSET 6
+#define VIETWARE_F_CHARSET 7
+#define BK_HCM2_CHARSET 8
+#define BK_HCM1_CHARSET 9
+#define VISCII_CHARSET 10
+#define VPS_CHARSET 11
+#define UTF8_CHARSET 12
+#define NCR_DEC_CHARSET 13
+#define NCR_HEX_CHARSET 14
+
+// input method ids
+#define TELEX_INPUT 0
+#define VNI_INPUT 1
+#define VIQR_INPUT 2
+#define VIQR_STAR_INPUT 3
+
+#define TOTAL_CHARSET 17
+#define INPUT_METHODS 4
+
+#define UNICODE_UTF8 1
+#define UNICODE_REF 2
+#define UNICODE_HEX 3
+#define UNICODE_CSTRING 4
+#define UNICODE_UCS2 5
+#define UNICODE_UTF8_X 6
+
+#endif
