@@ -1,0 +1,17 @@
+# ninja log v5
+16	159	8028664460701177	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayData.cpp.o	86fa382f6f09370e
+10	252	8028664461632331	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayEngine.cpp.o	70024cd7d4795f9a
+1	943	8028664468503812	CMakeFiles/cayime.dir/telex_jni.cpp.o	4038d2537194d4a0
+951	1080	8028664469901660	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/armeabi-v7a/libcayime.so	eef8fcfdbccfbeb2
+0	11	0	clean	48a3fe4d071d3f55
+15	176	8028731500233800	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayData.cpp.o	86fa382f6f09370e
+22	351	8028731502020115	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayEngine.cpp.o	70024cd7d4795f9a
+8	1093	8028731509417038	CMakeFiles/cayime.dir/telex_jni.cpp.o	4038d2537194d4a0
+1094	1231	8028731510813050	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/armeabi-v7a/libcayime.so	eef8fcfdbccfbeb2
+8	197	8028731809723209	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/armeabi-v7a/libcayime.so	eef8fcfdbccfbeb2
+0	14	0	clean	48a3fe4d071d3f55
+1	10	0	clean	48a3fe4d071d3f55
+23	189	8028790456963204	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayData.cpp.o	86fa382f6f09370e
+16	322	8028790458252788	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayEngine.cpp.o	70024cd7d4795f9a
+9	1637	8028790471353158	CMakeFiles/cayime.dir/telex_jni.cpp.o	4038d2537194d4a0
+1638	1802	8028790473070319	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/armeabi-v7a/libcayime.so	eef8fcfdbccfbeb2

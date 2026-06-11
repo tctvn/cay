@@ -26,8 +26,32 @@ jobs:
           name: cay-classic
           path: build/Release/cay-classic.exe
 
-  build-linux-fcitx5:
-    needs: build-windows-classic
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build Android APK
+        run: |
+          cd src/platform/android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cay-android
+          path: src/platform/android/app/build/outputs/apk/debug/*.apk
+
+  publish-nightly:
+    needs: [build-windows-classic, build-android]
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout Code
@@ -66,6 +90,26 @@ jobs:
           name: cay-classic
           path: .
 
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cay-android
+          path: android-apk
+
+      - name: Rename APK
+        run: |
+          cd android-apk
+          for f in *.apk; do
+            # org.fcitx.fcitx5.android-arm64-v8a-debug.apk -> cay-android-nightly-arm64-v8a.apk
+            NEW_NAME=$(echo "$f" | sed -E 's/.*-(armeabi-v7a|arm64-v8a|x86|x86_64|universal)-debug.apk/cay-android-nightly-\1.apk/')
+            # Fallback if sed doesn't match
+            if [ "$NEW_NAME" == "$f" ]; then
+              NEW_NAME="cay-android-nightly-$f"
+            fi
+            mv "$f" "../$NEW_NAME"
+          done
+          cd ..
+
       - name: Publish Nightly Release
         uses: softprops/action-gh-release@v2
         with:
@@ -74,10 +118,11 @@ jobs:
           body: |
             Bản build Nightly tự động cập nhật từ nhánh `main`.
 
-            ⚠️ **Cảnh báo**: Đây là phiên bản thử nghiệm (Experimental), có thể thiếu ổn định. Bao gồm bản Fcitx5 Linux và bản Classic cho Windows.
+            ⚠️ **Cảnh báo**: Đây là phiên bản thử nghiệm (Experimental), có thể thiếu ổn định. Bao gồm bản Fcitx5 Linux, bản Classic cho Windows và bản Android.
           prerelease: true
           files: |
             cayime-fcitx5-linux.tar.gz
             cay-classic.exe
+            cay-android-nightly-*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

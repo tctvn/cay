@@ -1,7 +1,7 @@
 # 🌶️ Cay — Bộ gõ Telex Siêu Nhỏ Gọn Cho Coder
 
 [![Release](https://img.shields.io/github/v/tag/tctvn/cay?style=for-the-badge&color=FF4500&label=Version)](https://github.com/tctvn/cay/releases)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-0078d7?style=for-the-badge)](https://github.com/tctvn/cay/releases)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Android-0078d7?style=for-the-badge)](https://github.com/tctvn/cay/releases)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=for-the-badge)](LICENSE)
 
 > **Cay** là bộ gõ Telex "nhỏ mà có võ", được viết bằng C++ thuần túy dành riêng cho các lập trình viên hệ tối giản. Không rườm rà, không giật lag, sinh ra là để tối ưu hóa hiệu suất gõ và coding mượt mà nhất có thể.
@@ -38,10 +38,15 @@ Nếu bạn không thích dùng script tự động, bạn có thể tải trự
   <a href="https://github.com/tctvn/cay/releases/latest/download/cay-mac.zip">
     <img src="https://img.shields.io/badge/T%E1%BA%A3i%20xu%E1%BB%91ng%20macOS-~40%20KB-brightgreen?style=for-the-badge&logo=apple&logoColor=white&color=000000" alt="Download macOS" />
   </a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/tctvn/cay/releases/latest/download/cay-android.apk">
+    <img src="https://img.shields.io/badge/T%E1%BA%A3i%20xu%E1%BB%91ng%20Android-~1.5%20MB-brightgreen?style=for-the-badge&logo=android&logoColor=white&color=3DDC84" alt="Download Android" />
+  </a>
 </p>
 
 - **Windows:** Chạy file `cay.exe`. Phím tắt mặc định chuyển đổi Anh/Việt là `Ctrl + Shift`.
 - **macOS:** Giải nén `cay-mac.zip` và kéo `cay.app` vào Applications. Cấp quyền *Accessibility*. Phím tắt mặc định là `Cmd + Shift`.
+- **Android:** Tải file `cay-android.apk` và mở cài đặt bình thường. Mở ứng dụng Cay vừa cài trên màn hình để cấp quyền kích hoạt bàn phím.
 
 ---
 
@@ -60,7 +65,7 @@ Nếu bạn không thích dùng script tự động, bạn có thể tải trự
 - 🧠 **Smart Bypass & Auto Restore:** Tự động nhận diện cụm từ tiếng Anh (camelCase, snake_case) để ngưng bỏ dấu. Đặc biệt hỗ trợ khôi phục lại từ tiếng Anh khi lỡ gõ sai (nhấn Space), bao trọn mọi kiểu gõ từ văn bản hành chính chuẩn mực cho đến teencode (ví dụ: `trờiiiiiiiiiiiiiiii`) mà không bị cản trở.
 - 🚫 **Direct Input (Không Preedit):** Văn bản xuất hiện trực tiếp (không có nét gạch chân hay vùng nháp), không gây chớp giật màn hình khi gõ.
 - ⚙️ **Zero-Config:** Tải về bật lên là sử dụng ngay. Bản mini tích hợp sẵn toàn bộ cấu hình tối ưu nhất.
-- 🌐 **Đa Nền Tảng:** Hỗ trợ mượt mà Windows (10/11), macOS (Intel/Apple Silicon) và Linux (Fcitx5).
+- 🌐 **Đa Nền Tảng:** Hỗ trợ mượt mà Windows (10/11), macOS (Intel/Apple Silicon), Linux (Fcitx5) và Android.
 
 ---
 

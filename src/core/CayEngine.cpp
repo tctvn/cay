@@ -433,12 +433,15 @@ static bool IsCompleteSyllable(const wchar_t* s, int len) {
     }
 
     // ── BLOCK 4: Khớp tail (tùy chọn) ──────────────────────── (đã có tiếng Việt)
-    for (int i = 0; i < (int)(sizeof(s_tails)/sizeof(s_tails[0])); i++) {
-        int tlen = CayStrLen(s_tails[i]);
-        if (tlen == 0) break;
-        if (matchStr(s_tails[i], tlen)) {
-            pos += tlen;
-            break;
+    // Lưu ý: Chỉ khớp tail nếu KHÔNG CÓ phụ âm cuối (Ví dụ: "tai" hợp lệ, nhưng "tan" thì không thể thêm tail "i" thành "tani")
+    if (!matchedFinal || matchedFinal[0] == L'\0') {
+        for (int i = 0; i < (int)(sizeof(s_tails)/sizeof(s_tails[0])); i++) {
+            int tlen = CayStrLen(s_tails[i]);
+            if (tlen == 0) break;
+            if (matchStr(s_tails[i], tlen)) {
+                pos += tlen;
+                break;
+            }
         }
     }
 

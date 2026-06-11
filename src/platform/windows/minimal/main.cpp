@@ -150,7 +150,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         case IDM_AUTOSTART: ToggleAutoStart(); break;
         case IDM_ABOUT:
             MessageBoxW(hWnd, 
-                L"Cay \u2013 B\u1ed9 g\u00f5 ti\u1ebfng Vi\u1ec7t Telex v1.0.4\n\n"
+                L"Cay \u2013 B\u1ed9 g\u00f5 ti\u1ebfng Vi\u1ec7t Telex v1.0.5\n\n"
                 L"Ctrl+Shift = B\u1eadt / T\u1eaft\n\n"
                 L"aa\u2192\u00e2  aw\u2192\u0103  dd\u2192\u0111  ee\u2192\u00ea  oo\u2192\u00f4  ow\u2192\u01a1  uw\u2192\u01b0\n"
                 L"s=s\u1eafc  f=huy\u1ec1n  r=h\u1ecfi  x=ng\u00e3  j=n\u1eb7ng\n\n"
