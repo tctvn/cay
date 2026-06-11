@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Cay IME</string>
+    <string name="settings_title">Cay Keyboard Settings</string>
+    <string name="enable_keyboard">Enable Keyboard in Settings</string>
+</resources>

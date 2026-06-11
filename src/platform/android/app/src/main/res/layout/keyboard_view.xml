@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/keyboardRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/kbd_bg"
+    android:padding="4dp">
+
+    <!-- Row 1 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="3dp">
+        <TextView android:id="@+id/key_q" style="@style/KeyStyle" android:text="q" />
+        <TextView android:id="@+id/key_w" style="@style/KeyStyle" android:text="w" />
+        <TextView android:id="@+id/key_e" style="@style/KeyStyle" android:text="e" />
+        <TextView android:id="@+id/key_r" style="@style/KeyStyle" android:text="r" />
+        <TextView android:id="@+id/key_t" style="@style/KeyStyle" android:text="t" />
+        <TextView android:id="@+id/key_y" style="@style/KeyStyle" android:text="y" />
+        <TextView android:id="@+id/key_u" style="@style/KeyStyle" android:text="u" />
+        <TextView android:id="@+id/key_i" style="@style/KeyStyle" android:text="i" />
+        <TextView android:id="@+id/key_o" style="@style/KeyStyle" android:text="o" />
+        <TextView android:id="@+id/key_p" style="@style/KeyStyle" android:text="p" />
+    </LinearLayout>
+
+    <!-- Row 2 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="3dp">
+        <TextView android:id="@+id/key_a" style="@style/KeyStyle" android:text="a" />
+        <TextView android:id="@+id/key_s" style="@style/KeyStyle" android:text="s" />
+        <TextView android:id="@+id/key_d" style="@style/KeyStyle" android:text="d" />
+        <TextView android:id="@+id/key_f" style="@style/KeyStyle" android:text="f" />
+        <TextView android:id="@+id/key_g" style="@style/KeyStyle" android:text="g" />
+        <TextView android:id="@+id/key_h" style="@style/KeyStyle" android:text="h" />
+        <TextView android:id="@+id/key_j" style="@style/KeyStyle" android:text="j" />
+        <TextView android:id="@+id/key_k" style="@style/KeyStyle" android:text="k" />
+        <TextView android:id="@+id/key_l" style="@style/KeyStyle" android:text="l" />
+    </LinearLayout>
+
+    <!-- Row 3 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="3dp">
+        <TextView android:id="@+id/key_shift" style="@style/SpecialKeyStyle" android:text="⬆" android:layout_weight="1.5" />
+        <TextView android:id="@+id/key_z" style="@style/KeyStyle" android:text="z" />
+        <TextView android:id="@+id/key_x" style="@style/KeyStyle" android:text="x" />
+        <TextView android:id="@+id/key_c" style="@style/KeyStyle" android:text="c" />
+        <TextView android:id="@+id/key_v" style="@style/KeyStyle" android:text="v" />
+        <TextView android:id="@+id/key_b" style="@style/KeyStyle" android:text="b" />
+        <TextView android:id="@+id/key_n" style="@style/KeyStyle" android:text="n" />
+        <TextView android:id="@+id/key_m" style="@style/KeyStyle" android:text="m" />
+        <TextView android:id="@+id/key_delete" style="@style/SpecialKeyStyle" android:text="⌫" android:layout_weight="1.5" />
+    </LinearLayout>
+
+    <!-- Row 4 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <TextView android:id="@+id/key_123" style="@style/SpecialKeyStyle" android:text="123" android:layout_weight="1.5" />
+        <ImageView android:id="@+id/key_emoji" style="@style/SpecialKeyStyle" android:src="@drawable/ic_emoji" android:layout_weight="1" />
+        <TextView android:id="@+id/key_space" style="@style/KeyStyle" android:text="Space" android:layout_weight="4" />
+        <TextView android:id="@+id/key_web_dot" style="@style/KeyStyle" android:text="." android:layout_weight="1" android:visibility="gone" />
+        <TextView android:id="@+id/key_enter" style="@style/SpecialKeyStyle" android:text="⏎" android:layout_weight="1.5" />
+    </LinearLayout>
+
+    <!-- Row 5 (Bottom Bar) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="bottom"
+        android:layout_marginTop="2dp"
+        android:paddingBottom="4dp"
+        android:paddingTop="4dp">
+        <ImageView android:id="@+id/key_globe" android:layout_width="48dp" android:layout_height="48dp" android:padding="10dp" android:src="@drawable/ic_globe" android:background="@null" />
+        <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+        <ImageView android:id="@+id/key_mic" android:layout_width="48dp" android:layout_height="48dp" android:padding="10dp" android:src="@drawable/ic_mic" android:background="@null" />
+    </LinearLayout>
+
+</LinearLayout>

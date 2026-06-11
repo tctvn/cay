@@ -33,7 +33,7 @@ extern HINSTANCE AppInstance;
 extern CUserPref UserPref; // user preference
 
 DlgItemInfo VnAboutDlgItems[] = {
-	{IDC_AUTHOR,				(wchar_t*)L"Cay Classic \u2013 B\u1ed9 g\u00f5 ti\u1ebfng Vi\u1ec7t v1.0.4"},
+	{IDC_AUTHOR,				(wchar_t*)L"Cay Classic \u2013 B\u1ed9 g\u00f5 ti\u1ebfng Vi\u1ec7t v1.0.5"},
 	{IDC_SUPPORT_PROVIDER,		(wchar_t*)L"D\u1ef1 \u00e1n m\u00e3 ngu\u1ed3n m\u1edf:"},
 	{IDC_SUPPORT_LINK,		(wchar_t*)L"https://github.com/tctvn/cay"},
 	{IDC_COPYRIGHT,		(wchar_t*)L"Ph\u00e1t tri\u1ec3n b\u1edfi tctvn\nGi\u1ea5y ph\u00e9p: GPL-3.0"},

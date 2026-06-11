@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/kbd_bg"
+    android:padding="4dp">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="180dp">
+        <LinearLayout
+            android:id="@+id/emoji_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <!-- Row 1 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
+                <TextView android:tag="😂" style="@style/KeyStyle" android:text="😂" />
+                <TextView android:tag="❤️" style="@style/KeyStyle" android:text="❤️" />
+                <TextView android:tag="👍" style="@style/KeyStyle" android:text="👍" />
+                <TextView android:tag="😭" style="@style/KeyStyle" android:text="😭" />
+                <TextView android:tag="🙏" style="@style/KeyStyle" android:text="🙏" />
+                <TextView android:tag="😘" style="@style/KeyStyle" android:text="😘" />
+                <TextView android:tag="🥰" style="@style/KeyStyle" android:text="🥰" />
+            </LinearLayout>
+            <!-- Row 2 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
+                <TextView android:tag="😍" style="@style/KeyStyle" android:text="😍" />
+                <TextView android:tag="😊" style="@style/KeyStyle" android:text="😊" />
+                <TextView android:tag="🎉" style="@style/KeyStyle" android:text="🎉" />
+                <TextView android:tag="😁" style="@style/KeyStyle" android:text="😁" />
+                <TextView android:tag="🔥" style="@style/KeyStyle" android:text="🔥" />
+                <TextView android:tag="😅" style="@style/KeyStyle" android:text="😅" />
+                <TextView android:tag="✨" style="@style/KeyStyle" android:text="✨" />
+            </LinearLayout>
+            <!-- Row 3 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
+                <TextView android:tag="🙄" style="@style/KeyStyle" android:text="🙄" />
+                <TextView android:tag="🥺" style="@style/KeyStyle" android:text="🥺" />
+                <TextView android:tag="😎" style="@style/KeyStyle" android:text="😎" />
+                <TextView android:tag="😜" style="@style/KeyStyle" android:text="😜" />
+                <TextView android:tag="😉" style="@style/KeyStyle" android:text="😉" />
+                <TextView android:tag="🤔" style="@style/KeyStyle" android:text="🤔" />
+                <TextView android:tag="👏" style="@style/KeyStyle" android:text="👏" />
+            </LinearLayout>
+            <!-- Row 4 -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
+                <TextView android:tag="😢" style="@style/KeyStyle" android:text="😢" />
+                <TextView android:tag="💪" style="@style/KeyStyle" android:text="💪" />
+                <TextView android:tag="🙌" style="@style/KeyStyle" android:text="🙌" />
+                <TextView android:tag="💖" style="@style/KeyStyle" android:text="💖" />
+                <TextView android:tag="💕" style="@style/KeyStyle" android:text="💕" />
+                <TextView android:tag="💯" style="@style/KeyStyle" android:text="💯" />
+                <TextView android:tag="✌️" style="@style/KeyStyle" android:text="✌️" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bottom Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="3dp">
+        <TextView android:id="@+id/key_abc" style="@style/SpecialKeyStyle" android:text="ABC" android:layout_weight="1.5" />
+        <TextView android:id="@+id/key_space" style="@style/KeyStyle" android:text="Space" android:layout_weight="4" />
+        <TextView android:id="@+id/key_delete" style="@style/SpecialKeyStyle" android:text="⌫" android:layout_weight="1.5" />
+    </LinearLayout>
+
+    <!-- Row 5 (Bottom Bar) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="bottom"
+        android:layout_marginTop="2dp"
+        android:paddingBottom="4dp"
+        android:paddingTop="4dp">
+        <ImageView android:id="@+id/key_globe" android:layout_width="48dp" android:layout_height="48dp" android:padding="10dp" android:src="@drawable/ic_globe" android:background="@null" />
+        <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" />
+        <ImageView android:id="@+id/key_mic" android:layout_width="48dp" android:layout_height="48dp" android:padding="10dp" android:src="@drawable/ic_mic" android:background="@null" />
+    </LinearLayout>
+
+</LinearLayout>
