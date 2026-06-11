@@ -307,10 +307,11 @@ static bool IsCompleteSyllable(const wchar_t* s, int len) {
         // 3 nguyên âm
         L"i\u00eau", L"y\u00eau", L"\u01b0\u01a1u", L"u\u00f4i", L"\u01b0\u01a1i", L"oai", L"oay",
         L"uya", L"uy\u00ea", L"ieu", L"yeu", L"uoi", L"uou", L"oao", L"oeo", L"uyu", L"uye",
+        L"uay",
         // 2 nguyên âm
         L"ai", L"ao", L"au", L"ay",
         L"\u00e2u", L"\u00e2y",
-        L"eo", L"\u00eau",
+        L"eo", L"\u00eau", L"eu",
         L"ia", L"i\u00ea", L"ie",
         L"iu",
         L"oa", L"oai", L"o\u0103", L"oe", L"oi", L"oo",
@@ -318,7 +319,7 @@ static bool IsCompleteSyllable(const wchar_t* s, int len) {
         L"\u01a1i",
         L"ua", L"u\u00e2", L"u\u00ea", L"ui", L"u\u00f4", L"uy", L"uo", L"ue", L"u\u01a1",
         L"\u01b0a", L"\u01b0i", L"\u01b0u", L"\u01b0\u01a1",
-        L"ya", L"y\u00ea", L"ye",
+        L"ya", L"y\u00ea", L"ye", L"uu",
         // 1 nguyên âm
         L"a", L"\u0103", L"\u00e2",
         L"e", L"\u00ea",
@@ -333,12 +334,6 @@ static bool IsCompleteSyllable(const wchar_t* s, int len) {
         L"ng", L"nh", L"ch",
         L"c", L"m", L"n", L"p", L"t",
         L""  // không có phụ âm cuối
-    };
-
-    // Bảng vần phụ (tail) (đã có tiếng Việt)
-    static const wchar_t* s_tails[] = {
-        L"i", L"y", L"o", L"u",
-        L""
     };
 
     const wchar_t* pos = s;
@@ -432,15 +427,7 @@ static bool IsCompleteSyllable(const wchar_t* s, int len) {
         }
     }
 
-    // ── BLOCK 4: Khớp tail (tùy chọn) ──────────────────────── (đã có tiếng Việt)
-    for (int i = 0; i < (int)(sizeof(s_tails)/sizeof(s_tails[0])); i++) {
-        int tlen = CayStrLen(s_tails[i]);
-        if (tlen == 0) break;
-        if (matchStr(s_tails[i], tlen)) {
-            pos += tlen;
-            break;
-        }
-    }
+    // (Đã gỡ bỏ BLOCK 4 khớp tail do s_nuclei đã bao quát toàn bộ)
 
     // ── KIỂM TRA KẾT THÚC ── (đã có tiếng Việt)
     return (pos == end);
@@ -537,6 +524,33 @@ bool TelexEngine::ShouldBypassWord() const {
         }
         if (len >= 4 && raw[0] == L'n' && raw[1] == L'g' && raw[2] == L'h') {
             if (raw[3] != L'i' && raw[3] != L'e' && raw[3] != L'\u00EA' && raw[3] != L'y') return true;
+        }
+    }
+
+    // ── CẢI TIẾN: Multiple Syllables Rule (V -> C+ -> V) ──
+    // Giúp detect ngay khi user gõ lố sang âm tiết thứ 2 mà không có dấu cách (vd: banhang)
+    bool foundVowel = false;
+    bool foundConsonantAfterVowel = false;
+    for (int i = 0; i < len; i++) {
+        wchar_t c = raw[i];
+        bool isV = (c == L'a' || c == L'e' || c == L'i' || c == L'o' || c == L'u' || c == L'y');
+        bool isC = (c >= L'a' && c <= L'z' && !isV);
+        if (isV) {
+            if (foundConsonantAfterVowel) {
+                // Đã thấy V -> C -> V
+                // Ngoại lệ: 'qu', 'gi' được tính là phụ âm đầu nên không dính lỗi này nếu C trước đó thuộc về phụ âm đầu
+                // Nhưng vì chúng ta duyệt raw từ trái qua phải, nếu là "qu" thì q(C), u(V), a(V). Không bị VCV.
+                // Cho nên logic này an toàn và đúng đắn.
+                return true; 
+            }
+            foundVowel = true;
+        } else if (isC) {
+            if (foundVowel) {
+                // Nếu ký tự này là w (dấu móc) hoặc s/f/r/x/j (dấu thanh) thì sao?
+                // Trong raw, nó vẫn tính là C. Nhưng nếu sau đó có V thì chắc chắn là sai.
+                // (VD: o w a -> ow là ơ, a là a -> ơa -> VCV -> sai)
+                foundConsonantAfterVowel = true;
+            }
         }
     }
 

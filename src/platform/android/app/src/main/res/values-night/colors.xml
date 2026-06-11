@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- iOS Dark Mode Colors -->
+    <color name="kbd_bg">#1C1C1E</color>
+    <color name="key_bg">#48484A</color>
+    <color name="key_bg_pressed">#2C2C2E</color>
+    <color name="key_special_bg">#2C2C2E</color>
+    <color name="key_special_bg_pressed">#48484A</color>
+    <color name="key_text">#FFFFFF</color>
+    <color name="key_shadow">#80000000</color>
+</resources>

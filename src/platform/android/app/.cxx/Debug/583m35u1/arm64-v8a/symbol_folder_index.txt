@@ -1,0 +1,1 @@
+C:\Users\u\OneDrive\vscode\cay\src\platform\android\app\build\intermediates\cxx\Debug\583m35u1\obj\arm64-v8a

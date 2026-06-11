@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Shadow -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp" />
+            <solid android:color="@color/key_shadow" />
+        </shape>
+    </item>
+    <!-- Key Body -->
+    <item android:bottom="1.5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp" />
+            <solid android:color="@color/key_special_bg" />
+            <padding android:left="8dp" android:right="8dp" android:top="12dp" android:bottom="12dp" />
+        </shape>
+    </item>
+</layer-list>

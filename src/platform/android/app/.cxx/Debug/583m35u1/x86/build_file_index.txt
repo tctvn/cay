@@ -1,0 +1,1 @@
+C:\Users\u\OneDrive\vscode\cay\src\platform\android\app\src\main\cpp\CMakeLists.txt
