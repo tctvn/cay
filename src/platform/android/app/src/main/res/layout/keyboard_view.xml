@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginBottom="3dp">
+        >
         <TextView android:id="@+id/key_q" style="@style/KeyStyle" android:text="q" />
         <TextView android:id="@+id/key_w" style="@style/KeyStyle" android:text="w" />
         <TextView android:id="@+id/key_e" style="@style/KeyStyle" android:text="e" />
@@ -32,7 +32,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginBottom="3dp">
+        >
         <TextView android:id="@+id/key_a" style="@style/KeyStyle" android:text="a" />
         <TextView android:id="@+id/key_s" style="@style/KeyStyle" android:text="s" />
         <TextView android:id="@+id/key_d" style="@style/KeyStyle" android:text="d" />
@@ -50,7 +50,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginBottom="3dp">
+        >
         <TextView android:id="@+id/key_shift" style="@style/SpecialKeyStyle" android:text="⬆" android:layout_weight="1.5" />
         <TextView android:id="@+id/key_z" style="@style/KeyStyle" android:text="z" />
         <TextView android:id="@+id/key_x" style="@style/KeyStyle" android:text="x" />

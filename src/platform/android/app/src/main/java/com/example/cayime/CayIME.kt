@@ -18,6 +18,10 @@ import android.view.inputmethod.ExtractedTextRequest
 import android.widget.Button
 import android.widget.PopupMenu
 import android.widget.TextView
+import android.widget.PopupWindow
+import android.view.Gravity
+import android.widget.LinearLayout
+import android.graphics.Color
 import android.util.Log
 import kotlin.math.abs
 
@@ -41,7 +45,19 @@ class CayIME : InputMethodService() {
     private var isHandlingKey = false
 
     private lateinit var audioManager: AudioManager
+    private var isHapticEnabled = true
     private var currentKeyboardLayout = R.layout.keyboard_view
+    private var popupWindow: PopupWindow? = null
+
+    private val longPressVariants = mapOf(
+        'a' to listOf('a', 'á', 'à', 'ả', 'ã', 'ạ', 'ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ', 'â', 'ấ', 'ầ', 'ẩ', 'ẫ', 'ậ'),
+        'e' to listOf('e', 'é', 'è', 'ẻ', 'ẽ', 'ẹ', 'ê', 'ế', 'ề', 'ể', 'ễ', 'ệ'),
+        'i' to listOf('i', 'í', 'ì', 'ỉ', 'ĩ', 'ị'),
+        'o' to listOf('o', 'ó', 'ò', 'ỏ', 'õ', 'ọ', 'ô', 'ố', 'ồ', 'ổ', 'ỗ', 'ộ', 'ơ', 'ớ', 'ờ', 'ở', 'ỡ', 'ợ'),
+        'u' to listOf('u', 'ú', 'ù', 'ủ', 'ũ', 'ụ', 'ư', 'ứ', 'ừ', 'ử', 'ữ', 'ự'),
+        'y' to listOf('y', 'ý', 'ỳ', 'ỷ', 'ỹ', 'ỵ'),
+        'd' to listOf('d', 'đ')
+    )
 
     override fun onCreate() {
         super.onCreate()
@@ -60,6 +76,9 @@ class CayIME : InputMethodService() {
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        
+        val prefs = getSharedPreferences("CayIMEPrefs", Context.MODE_PRIVATE)
+        isHapticEnabled = prefs.getBoolean("haptic_feedback", true)
         
         var layoutResId = R.layout.keyboard_view
         var isWebInput = false
@@ -242,6 +261,13 @@ class CayIME : InputMethodService() {
                     playClickFeedback(v, AudioManager.FX_KEYPRESS_STANDARD)
                     handleCharacter(char.uppercaseChar().code, char)
                 }
+                
+                if (longPressVariants.containsKey(char)) {
+                    view.setOnLongClickListener { v ->
+                        showLongPressPopup(v, char)
+                        true
+                    }
+                }
             }
         }
         
@@ -280,9 +306,15 @@ class CayIME : InputMethodService() {
             switchKeyboardLayout(R.layout.keyboard_view_emoji)
         }
 
-        keyboardView.findViewById<View>(R.id.key_web_dot)?.setOnClickListener { view ->
-            playClickFeedback(view, AudioManager.FX_KEYPRESS_STANDARD)
-            handleCharacter('.'.code, '.')
+        keyboardView.findViewById<View>(R.id.key_web_dot)?.let { webDotKey ->
+            webDotKey.setOnClickListener { view ->
+                playClickFeedback(view, AudioManager.FX_KEYPRESS_STANDARD)
+                handleCharacter('.'.code, '.')
+            }
+            webDotKey.setOnLongClickListener { view ->
+                showStringPopup(view, listOf(".", ".vn", ".com", ".net", ".org", ".edu"))
+                true
+            }
         }
 
         setupBottomBar(keyboardView)
@@ -500,11 +532,13 @@ class CayIME : InputMethodService() {
 
     private fun playClickFeedback(view: View, soundEffect: Int) {
         audioManager.playSoundEffect(soundEffect)
-        @Suppress("DEPRECATION")
-        view.performHapticFeedback(
-            HapticFeedbackConstants.KEYBOARD_TAP,
-            HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
-        )
+        if (isHapticEnabled) {
+            @Suppress("DEPRECATION")
+            view.performHapticFeedback(
+                HapticFeedbackConstants.KEYBOARD_TAP,
+                HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+            )
+        }
     }
 
     private fun updateSpacebarLabel() {
@@ -636,6 +670,113 @@ class CayIME : InputMethodService() {
             
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private fun showBubblePopup(anchorView: View, contentBuilder: (LinearLayout) -> Unit) {
+        val inflater = layoutInflater
+        val popupRoot = inflater.inflate(R.layout.keyboard_popup, null) as android.widget.FrameLayout
+        val popupContainer = popupRoot.findViewById<LinearLayout>(R.id.popup_container)
+        val popupBubbleView = popupRoot.findViewById<PopupBubbleView>(R.id.popup_bubble_view)
+
+        // Let caller populate the container
+        contentBuilder(popupContainer)
+
+        // Triangle pointer dimensions (in px)
+        val density = resources.displayMetrics.density
+        val triangleHeight = (10 * density).toInt()
+        val contentPadding = (8 * density).toInt()
+
+        // Set padding on container: space for content + triangle at bottom
+        popupContainer.setPadding(contentPadding, contentPadding, contentPadding, contentPadding + triangleHeight)
+
+        // Measure
+        popupRoot.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val popupWidth = popupRoot.measuredWidth
+        val popupHeight = popupRoot.measuredHeight
+
+        // Create PopupWindow with exact size
+        popupWindow = PopupWindow(popupRoot, popupWidth, popupHeight, true)
+        popupWindow?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Color.TRANSPARENT))
+
+        // Calculate horizontal position: center popup on anchor, clamp to screen
+        val location = IntArray(2)
+        anchorView.getLocationInWindow(location)
+        val anchorX = location[0]
+        val anchorCenterX = anchorX + anchorView.width / 2
+        val screenWidth = resources.displayMetrics.widthPixels
+        val margin = (4 * density).toInt()
+
+        var xOffset = (anchorView.width - popupWidth) / 2
+        var absolutePopupX = anchorX + xOffset
+
+        if (absolutePopupX < margin) {
+            xOffset = margin - anchorX
+            absolutePopupX = margin
+        } else if (absolutePopupX + popupWidth > screenWidth - margin) {
+            val newX = screenWidth - margin - popupWidth
+            xOffset = newX - anchorX
+            absolutePopupX = newX
+        }
+
+        // Set triangle center to point at the anchor key center
+        val stemCenterInPopup = (anchorCenterX - absolutePopupX).toFloat()
+        popupBubbleView.stemCenterX = stemCenterInPopup
+        popupBubbleView.triangleHeight = triangleHeight.toFloat()
+
+        // Show right above the anchor key (popup bottom touching key top)
+        val yOffset = -(anchorView.height + popupHeight)
+        popupWindow?.showAsDropDown(anchorView, xOffset, yOffset)
+        playClickFeedback(anchorView, AudioManager.FX_KEYPRESS_STANDARD)
+    }
+
+    private fun showLongPressPopup(anchorView: View, baseChar: Char) {
+        val variants = longPressVariants[baseChar] ?: return
+        val isUpper = currentShiftState == ShiftState.SHIFTED || currentShiftState == ShiftState.CAPS_LOCK
+
+        showBubblePopup(anchorView) { container ->
+            for (c in variants) {
+                val displayChar = if (isUpper) c.uppercaseChar() else c
+                val textView = TextView(this).apply {
+                    text = displayChar.toString()
+                    textSize = 28f
+                    setTextColor(resources.getColor(R.color.key_text, null))
+                    setPadding(24, 8, 24, 8)
+                    setBackgroundResource(R.drawable.popup_item_bg)
+                    setOnClickListener {
+                        playClickFeedback(it, AudioManager.FX_KEYPRESS_STANDARD)
+                        handleCharacter(displayChar.uppercaseChar().code, displayChar)
+                        popupWindow?.dismiss()
+                    }
+                }
+                container.addView(textView)
+            }
+        }
+    }
+
+    private fun showStringPopup(anchorView: View, options: List<String>) {
+        showBubblePopup(anchorView) { container ->
+            for (str in options) {
+                val textView = TextView(this).apply {
+                    text = str
+                    textSize = 22f
+                    setTextColor(resources.getColor(R.color.key_text, null))
+                    setPadding(24, 8, 24, 8)
+                    setBackgroundResource(R.drawable.popup_item_bg)
+                    setOnClickListener {
+                        playClickFeedback(it, AudioManager.FX_KEYPRESS_STANDARD)
+                        telexEngine.reset()
+                        isHandlingKey = true
+                        currentInputConnection?.commitText(str, 1)
+                        if (lastSelectionStart != -1) {
+                            lastSelectionStart += str.length
+                        }
+                        isHandlingKey = false
+                        popupWindow?.dismiss()
+                    }
+                }
+                container.addView(textView)
+            }
         }
     }
 }
