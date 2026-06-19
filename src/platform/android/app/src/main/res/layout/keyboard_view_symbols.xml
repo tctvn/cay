@@ -12,8 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="3dp">
+        android:gravity="center">
         <TextView android:id="@+id/key_1" style="@style/KeyStyle" android:text="1" />
         <TextView android:id="@+id/key_2" style="@style/KeyStyle" android:text="2" />
         <TextView android:id="@+id/key_3" style="@style/KeyStyle" android:text="3" />
@@ -31,8 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="3dp">
+        android:gravity="center">
         <TextView android:id="@+id/key_minus" style="@style/KeyStyle" android:text="-" />
         <TextView android:id="@+id/key_slash" style="@style/KeyStyle" android:text="/" />
         <TextView android:id="@+id/key_colon" style="@style/KeyStyle" android:text=":" />
@@ -50,8 +48,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="3dp">
+        android:gravity="center">
         <TextView android:id="@+id/key_hash" style="@style/KeyStyle" android:text="#" android:layout_weight="1.5" />
         <TextView android:id="@+id/key_plus" style="@style/KeyStyle" android:text="+" />
         <TextView android:id="@+id/key_equal" style="@style/KeyStyle" android:text="=" />

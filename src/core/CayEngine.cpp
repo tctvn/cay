@@ -724,6 +724,10 @@ bool TelexEngine::ApplyDoubleKeys(wchar_t key) {
         }
 
         // 2. Apply logic
+        if (_toneIndex > 0 && tone == 0 && loBase != L'd' && loBase != L'\u0111') {
+            continue;
+        }
+
         if (loKey == L'a' && loBase == L'a') {
             wchar_t newBase = isUpper ? L'\u00C2' : L'\u00E2';
             _text[j] = tone ? CayData::GetToneMark(newBase, tone) : newBase;

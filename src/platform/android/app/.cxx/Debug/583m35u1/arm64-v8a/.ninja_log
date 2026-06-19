@@ -15,3 +15,6 @@
 71	379	8028790425186101	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayEngine.cpp.o	d65138c3a5af6058
 11	2129	8028790442546135	CMakeFiles/cayime.dir/telex_jni.cpp.o	1815df9f846f88fd
 2130	2432	8028790445701381	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/arm64-v8a/libcayime.so	da43bc951679a2a8
+311	482	8035788929337453	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayEngine.cpp.o	d65138c3a5af6058
+30	1469	8035788939155889	CMakeFiles/cayime.dir/telex_jni.cpp.o	1815df9f846f88fd
+1470	1814	8035788942647558	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/arm64-v8a/libcayime.so	da43bc951679a2a8
