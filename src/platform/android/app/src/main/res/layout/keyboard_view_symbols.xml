@@ -12,8 +12,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="3dp">
+        android:weightSum="10"
+        android:gravity="center">
         <TextView android:id="@+id/key_1" style="@style/KeyStyle" android:text="1" />
         <TextView android:id="@+id/key_2" style="@style/KeyStyle" android:text="2" />
         <TextView android:id="@+id/key_3" style="@style/KeyStyle" android:text="3" />
@@ -31,8 +31,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="3dp">
+        android:weightSum="10"
+        android:gravity="center">
         <TextView android:id="@+id/key_minus" style="@style/KeyStyle" android:text="-" />
         <TextView android:id="@+id/key_slash" style="@style/KeyStyle" android:text="/" />
         <TextView android:id="@+id/key_colon" style="@style/KeyStyle" android:text=":" />
@@ -46,22 +46,45 @@
     </LinearLayout>
 
     <!-- Row 3: Symbols 2 -->
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="3dp">
-        <TextView android:id="@+id/key_hash" style="@style/KeyStyle" android:text="#" android:layout_weight="1.5" />
-        <TextView android:id="@+id/key_plus" style="@style/KeyStyle" android:text="+" />
-        <TextView android:id="@+id/key_equal" style="@style/KeyStyle" android:text="=" />
-        <TextView android:id="@+id/key_period" style="@style/KeyStyle" android:text="." />
-        <TextView android:id="@+id/key_comma" style="@style/KeyStyle" android:text="," />
-        <TextView android:id="@+id/key_question" style="@style/KeyStyle" android:text="?" />
-        <TextView android:id="@+id/key_exclamation" style="@style/KeyStyle" android:text="!" />
-        <TextView android:id="@+id/key_quote" style="@style/KeyStyle" android:text="\'" />
-        <TextView android:id="@+id/key_delete" style="@style/SpecialKeyStyle" android:text="⌫" android:layout_weight="1.5" />
-    </LinearLayout>
+        android:layout_height="wrap_content">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="10"
+            android:gravity="center">
+            
+            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.5" />
+            
+            <TextView android:id="@+id/key_plus" style="@style/KeyStyle" android:text="+" />
+            <TextView android:id="@+id/key_equal" style="@style/KeyStyle" android:text="=" />
+            <TextView android:id="@+id/key_period" style="@style/KeyStyle" android:text="." />
+            <TextView android:id="@+id/key_comma" style="@style/KeyStyle" android:text="," />
+            <TextView android:id="@+id/key_question" style="@style/KeyStyle" android:text="?" />
+            <TextView android:id="@+id/key_exclamation" style="@style/KeyStyle" android:text="!" />
+            <TextView android:id="@+id/key_quote" style="@style/KeyStyle" android:text="\'" />
+            
+            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.5" />
+        </LinearLayout>
+
+        <TextView android:id="@+id/key_hash" 
+            style="@style/SpecialKeyStyle" 
+            android:text="#+=" 
+            android:textSize="15sp"
+            android:layout_width="wrap_content"
+            android:layout_gravity="start|center_vertical" />
+
+        <TextView android:id="@+id/key_delete" 
+            style="@style/SpecialKeyStyle" 
+            android:text="⌫" 
+            android:textSize="24sp"
+            android:padding="0dp"
+            android:layout_width="wrap_content"
+            android:layout_gravity="end|center_vertical" />
+    </FrameLayout>
 
     <!-- Row 4 -->
     <LinearLayout
@@ -69,10 +92,11 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center">
-        <TextView android:id="@+id/key_abc" style="@style/SpecialKeyStyle" android:text="ABC" android:layout_weight="1.5" />
-        <ImageView android:id="@+id/key_emoji" style="@style/SpecialKeyStyle" android:src="@drawable/ic_emoji" android:layout_weight="1" />
-        <TextView android:id="@+id/key_space" style="@style/KeyStyle" android:text="Space" android:layout_weight="4" />
-        <TextView android:id="@+id/key_enter" style="@style/SpecialKeyStyle" android:text="⏎" android:layout_weight="1.5" />
+        <TextView android:id="@+id/key_abc" style="@style/SpecialKeyStyle" android:text="ABC" android:textSize="15sp" android:layout_width="wrap_content" android:layout_weight="0" />
+        <ImageView android:id="@+id/key_emoji" style="@style/SpecialKeyStyle" android:src="@drawable/ic_emoji" android:layout_width="wrap_content" android:layout_weight="0" />
+        <TextView android:id="@+id/key_space" style="@style/KeyStyle" android:text="Space" android:layout_width="0dp" android:layout_weight="3.5" />
+        <TextView android:id="@+id/key_web_dot" style="@style/KeyStyle" android:text="." android:layout_width="wrap_content" android:layout_weight="0" />
+        <TextView android:id="@+id/key_enter" style="@style/SpecialKeyStyle" android:text="↵" android:layout_width="0dp" android:layout_weight="1.5" />
     </LinearLayout>
 
     <!-- Row 5 (Bottom Bar) -->

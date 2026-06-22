@@ -1,17 +1,5 @@
 # ninja log v5
-17	294	8028664421971183	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayData.cpp.o	e64582d11ede1c67
-10	460	8028664423624890	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayEngine.cpp.o	d65138c3a5af6058
-1	1940	8028664438326142	CMakeFiles/cayime.dir/telex_jni.cpp.o	1815df9f846f88fd
-1948	2125	8028664440254799	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/arm64-v8a/libcayime.so	da43bc951679a2a8
-0	11	0	clean	48a3fe4d071d3f55
-68	191	8028731484124281	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayData.cpp.o	e64582d11ede1c67
-74	295	8028731485174397	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayEngine.cpp.o	d65138c3a5af6058
-8	1319	8028731495348316	CMakeFiles/cayime.dir/telex_jni.cpp.o	1815df9f846f88fd
-1319	1527	8028731497458621	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/arm64-v8a/libcayime.so	da43bc951679a2a8
-8	232	8028731805062484	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/arm64-v8a/libcayime.so	da43bc951679a2a8
-1	13	0	clean	48a3fe4d071d3f55
-0	9	0	clean	48a3fe4d071d3f55
-79	238	8028790423838148	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayData.cpp.o	e64582d11ede1c67
-71	379	8028790425186101	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayEngine.cpp.o	d65138c3a5af6058
-11	2129	8028790442546135	CMakeFiles/cayime.dir/telex_jni.cpp.o	1815df9f846f88fd
-2130	2432	8028790445701381	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/arm64-v8a/libcayime.so	da43bc951679a2a8
+9	157	8038012422964042	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayData.cpp.o	e64582d11ede1c67
+16	248	8038012423881614	CMakeFiles/cayime.dir/C_/Users/u/OneDrive/vscode/cay/src/core/CayEngine.cpp.o	d65138c3a5af6058
+1	1465	8038012435930391	CMakeFiles/cayime.dir/telex_jni.cpp.o	1815df9f846f88fd
+1472	1662	8038012437728627	C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/build/intermediates/cxx/Debug/583m35u1/obj/arm64-v8a/libcayime.so	da43bc951679a2a8

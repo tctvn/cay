@@ -1,0 +1,29 @@
+# TÀI LIỆU CỐT LÕI DỰ ÁN CAY IME (CAY BRAIN)
+
+**Cay IME** là một bộ gõ tiếng Việt Telex đa nền tảng, mượt mà và tối ưu hiệu suất với trải nghiệm tiệm cận bàn phím gốc của iOS.
+
+## 1. Kiến Trúc Tổng Quan (Architecture)
+- **Core Engine (C++)**: Nằm tại `src/core/`. Bộ não xử lý bộ gõ Telex. Được viết bằng C++ thuần (No-CRT, No-STL) để đạt hiệu năng tối đa (chỉ tốn khoảng 18KB). Quản lý chuỗi trạng thái (`_buffer`, `_text`) và thuật toán xử lý dấu, xoá lùi (Backspace Dependency Tracking).
+- **Platform Android**: Nằm tại `src/platform/android/`. Chạy dịch vụ `InputMethodService` (`CayIME.kt`) và gọi Core C++ qua JNI (`TelexEngine.kt`).
+
+## 2. Kiến Trúc Giao Diện (UI/UX)
+Toàn bộ bàn phím Android được build tay (Custom Views) hoàn toàn, không phụ thuộc vào class `Keyboard` lỗi thời của Android, bao gồm:
+- **Tập tin XML**: `keyboard_view.xml` (bàn phím chữ) và `keyboard_view_symbols.xml` (bàn phím số 123). Cả hai bảng đều có chung cấu trúc HTML/XML để tránh bị giật lag (sượng) khi lật trang.
+- **Hệ thống Weight**: Sử dụng `LinearLayout` với `weightSum=10` cho các hàng chữ. Hàng cuối sử dụng `weight=3.5` cho phím Space để tự động căn giữa cân bằng màn hình.
+- **Phím vuông chuẩn iOS (Pixel-Perfect)**: Các phím chức năng (Shift, Delete, 123/ABC, Emoji, Enter) được ép thành hình vuông ở runtime (trong block `view.post`) bằng cách đo chiều cao phím chữ cái (ví dụ `key_q`) và gán `width = height`.
+- **Icon Vector**: Thay vì dùng chữ (Unicode), các phím chức năng bắt buộc dùng **Vector Drawable (ImageView)** (`ic_shift.xml`, `ic_capslock.xml`, `ic_shift_filled.xml`) để tránh các lỗi lệch tâm kinh điển do baseline của font Android.
+
+## 3. Các Chức Năng Bàn Phím Đã Cấu Hình
+- **Cơ chế Nẩy phím (Key Popups)**: Sử dụng custom `PopupWindow` (`PopupBubbleView.kt`) với hiệu ứng đổ bóng mượt mà. Kích hoạt khi onTouch DOWN và huỷ khi UP/CANCEL.
+- **Cơ chế Xoá nhanh (Fast Delete)**: Phím Backspace được thiết kế với vòng lặp `Handler`/`Runnable` chạy ngầm mỗi 50ms khi người dùng ấn giữ (Long Press).
+- **Chuyển trang Ký tự (Dynamic Symbols)**: Bàn phím số có 2 trang. Trang 1 (123) và Trang 2 (#+=). Khi nhấn phím `#+=`, hàm `updateSymbolsPage()` tự động hoán đổi nhãn của 2 hàng trên cùng và thay đổi chữ của phím chuyển đổi thành `123`.
+- **Cơ chế Caps Lock**: Bất chấp trạng thái hiện tại (viết thường hay viết hoa đầu câu), nhấp đúp phím Shift trong vòng `<300ms` sẽ ép trạng thái khóa Caps Lock `⇪` ngay lập tức.
+- **Enter Ngữ cảnh**: Hàm `updateContextualKeys()` quét `EditorInfo` để đổi nhãn nút Enter thành Đi, Tìm, Gửi, Xong, Tiếp, hoặc ↵.
+
+## 4. Các Lưu Ý Kỹ Thuật (Known Quirks & Gotchas)
+1. **Lỗi lệch chữ phím Shift**: Ký tự `⇧` Unicode thường bị ép sát đáy do font Metrics mặc định của Android. BẮT BUỘC dùng `ImageView` + Vector cho phím này, không dùng `TextView`.
+2. **Kích thước View**: Mọi thao tác đo đạc (`view.height`, `view.width`) đều bằng `0` trong `onCreateInputView`. Phải bao bọc bằng `view.post { ... }` để lấy kích thước sau khi render.
+3. **Lỗi mmap Git (Đồng bộ OneDrive)**: Dự án nằm trên thư mục OneDrive của Windows thường bị lỗi `mmap failed: Invalid argument` khi chạy `git push`. Cách xử lý là clone tạm ra Desktop để đẩy, hoặc set lại limit memory của Git.
+4. **Tránh ClassCastException**: Các biến lưu trữ tham chiếu phím như `shiftKeyView` phải được ép kiểu lỏng lẻo (`View?`) chứ không được ép chết thành `TextView?` để dễ dàng đổi qua lại `ImageView` khi nâng cấp giao diện.
+
+*Tài liệu này đóng vai trò như một bộ nhớ phụ trợ (Brain) để các session code tiếp theo có thể kế thừa và bảo trì dự án một cách an toàn nhất.*

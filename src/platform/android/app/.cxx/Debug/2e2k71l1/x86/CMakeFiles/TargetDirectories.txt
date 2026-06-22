@@ -1,3 +1,0 @@
-C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/.cxx/Debug/2e2k71l1/x86/CMakeFiles/cayime.dir
-C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/.cxx/Debug/2e2k71l1/x86/CMakeFiles/edit_cache.dir
-C:/Users/u/OneDrive/vscode/cay/src/platform/android/app/.cxx/Debug/2e2k71l1/x86/CMakeFiles/rebuild_cache.dir

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
+import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
@@ -28,6 +29,14 @@ class SettingsActivity : AppCompatActivity() {
 
         btnOpenSettings.setOnClickListener {
             startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+        }
+
+        val switchHaptic = findViewById<Switch>(R.id.switchHapticFeedback)
+        val prefs = getSharedPreferences("CayIMEPrefs", Context.MODE_PRIVATE)
+        switchHaptic.isChecked = prefs.getBoolean("haptic_feedback", true)
+
+        switchHaptic.setOnCheckedChangeListener { _, isChecked ->
+            prefs.edit().putBoolean("haptic_feedback", isChecked).apply()
         }
 
         if (intent.getBooleanExtra("show_voice_dialog", false)) {
