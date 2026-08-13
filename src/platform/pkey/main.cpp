@@ -9,16 +9,29 @@
 #include "CayEngine.h"
 
 // Biến toàn cục
-Cay::TelexEngine cayEngine;
-bool isImeEnabled = true;
 bool use_helper = false;
+bool coprocessor_mode = false;
+bool isImeEnabled = true;
+
+Cay::TelexEngine cayEngine;
 
 
 // Hàng đợi gửi HID report để tránh re-entrancy
-#define INJECT_QUEUE_SIZE 512
+#define INJECT_QUEUE_SIZE 16
 hid_keyboard_report_t inject_queue[INJECT_QUEUE_SIZE];
-volatile int inject_head = 0;
-volatile int inject_tail = 0;
+uint8_t inject_head = 0;
+uint8_t inject_tail = 0;
+
+// Hàng đợi sự kiện chung cho cả bàn phím vật lý và Coprocessor
+#define EVENT_QUEUE_SIZE 32
+hid_keyboard_report_t event_queue[EVENT_QUEUE_SIZE];
+uint8_t event_head = 0;
+uint8_t event_tail = 0;
+
+void enqueue_event(hid_keyboard_report_t const *report) {
+    event_queue[event_tail] = *report;
+    event_tail = (event_tail + 1) % EVENT_QUEUE_SIZE;
+}
 
 void enqueue_report(hid_keyboard_report_t const *report) {
     int next = (inject_tail + 1) % INJECT_QUEUE_SIZE;
@@ -50,11 +63,8 @@ void enqueue_keys_array(uint8_t modifier, const uint8_t* keys) {
 // Hàm callback inject text cho CayEngine
 void onInjectText(int backspaceCount, const wchar_t* newText, int newTextLen) {
     bool needs_helper = false;
-    for (int i = 0; i < newTextLen; i++) {
-        if (newText[i] >= 128) {
-            needs_helper = true;
-            break;
-        }
+    if (use_helper) {
+        needs_helper = true;
     }
 
     if (use_helper && needs_helper) {
@@ -153,6 +163,15 @@ Cay::KeyCode hid2cay(uint8_t hid_code) {
         case HID_KEY_BACKSPACE: return Cay::KeyCode::Backspace;
         case HID_KEY_ENTER: return Cay::KeyCode::Enter;
         case HID_KEY_SPACE: return Cay::KeyCode::Space;
+        case HID_KEY_ARROW_UP: return Cay::KeyCode::Up;
+        case HID_KEY_ARROW_DOWN: return Cay::KeyCode::Down;
+        case HID_KEY_ARROW_LEFT: return Cay::KeyCode::Left;
+        case HID_KEY_ARROW_RIGHT: return Cay::KeyCode::Right;
+        case HID_KEY_HOME: return Cay::KeyCode::Home;
+        case HID_KEY_END: return Cay::KeyCode::End;
+        case HID_KEY_PAGE_UP: return Cay::KeyCode::PageUp;
+        case HID_KEY_PAGE_DOWN: return Cay::KeyCode::PageDown;
+        case HID_KEY_DELETE: return Cay::KeyCode::Delete;
     }
     return Cay::KeyCode::Unknown;
 }
@@ -166,121 +185,182 @@ wchar_t hid2char(uint8_t hid_code, bool shift) {
     return 0; // Các phím không phải chữ không cần character mapping cho Telex Engine
 }
 
-// Gửi một report tới máy tính
+// Gửi một report tới máy tính (Legacy, enqueue vào inject queue)
 void forward_report(hid_keyboard_report_t const *report) {
     enqueue_report(report);
 }
 
-// Danh sách các phím đang bị suppress bởi CayEngine
-static uint8_t suppressed_keys[6] = {0};
-
-void add_suppressed_key(uint8_t key) {
-    for(int i=0; i<6; i++) {
-        if(suppressed_keys[i] == 0) {
-            suppressed_keys[i] = key;
-            return;
-        }
+// Forward direct (Hardware)
+void forward_report_direct(hid_keyboard_report_t const *report) {
+    while (!tud_hid_n_ready(0)) {
+        tud_task();
+        tuh_task();
     }
+    tud_hid_keyboard_report(0, report->modifier, report->keycode);
 }
 
-void remove_suppressed_key(uint8_t key) {
-    for(int i=0; i<6; i++) {
-        if(suppressed_keys[i] == key) {
-            suppressed_keys[i] = 0;
-        }
-    }
-}
+static bool suppressed_keys[256] = {false};
 
-bool is_suppressed(uint8_t key) {
-    for(int i=0; i<6; i++) {
-        if(suppressed_keys[i] == key && key != 0) return true;
-    }
-    return false;
-}
-
-// Xử lý báo cáo từ bàn phím Host
 void process_kbd_report(hid_keyboard_report_t const *report) {
     static hid_keyboard_report_t prev_report = { 0, 0, {0} };
     
-    bool current_ctrl = report->modifier & (KEYBOARD_MODIFIER_LEFTCTRL | KEYBOARD_MODIFIER_RIGHTCTRL);
-    bool current_shift = report->modifier & (KEYBOARD_MODIFIER_LEFTSHIFT | KEYBOARD_MODIFIER_RIGHTSHIFT);
-    bool prev_ctrl = prev_report.modifier & (KEYBOARD_MODIFIER_LEFTCTRL | KEYBOARD_MODIFIER_RIGHTCTRL);
-    bool prev_shift = prev_report.modifier & (KEYBOARD_MODIFIER_LEFTSHIFT | KEYBOARD_MODIFIER_RIGHTSHIFT);
-    
-    bool current_alt = report->modifier & (KEYBOARD_MODIFIER_LEFTALT | KEYBOARD_MODIFIER_RIGHTALT);
-    bool current_gui = report->modifier & (KEYBOARD_MODIFIER_LEFTGUI | KEYBOARD_MODIFIER_RIGHTGUI);
-    
-    // Bắt Ctrl + Shift để toggle IME
-    if (current_ctrl && current_shift && !(prev_ctrl && prev_shift)) {
-        isImeEnabled = !isImeEnabled;
-        gpio_put(PICO_DEFAULT_LED_PIN, isImeEnabled);
-        cayEngine.ResetFull();
-        memset(suppressed_keys, 0, sizeof(suppressed_keys));
-    }
-    
-    // Nếu có phím modifier (Ctrl, Alt, Win) được giữ, reset engine để không làm hỏng các phím tắt (Ctrl+A, Ctrl+C...)
-    bool has_modifier = current_ctrl || current_alt || current_gui;
-    if (has_modifier) {
-        cayEngine.ResetFull();
-    }
-    
-    // Xóa các phím đã thả khỏi danh sách suppress
-    for (uint8_t i = 0; i < 6; i++) {
-        uint8_t prev_key = prev_report.keycode[i];
-        if (prev_key) {
-            bool still_pressed = false;
-            for (uint8_t j = 0; j < 6; j++) {
-                if (report->keycode[j] == prev_key) still_pressed = true;
-            }
-            if (!still_pressed) remove_suppressed_key(prev_key);
+    if (!use_helper) {
+        // Legacy Mode
+        bool current_ctrl = report->modifier & (KEYBOARD_MODIFIER_LEFTCTRL | KEYBOARD_MODIFIER_RIGHTCTRL);
+        bool current_shift = report->modifier & (KEYBOARD_MODIFIER_LEFTSHIFT | KEYBOARD_MODIFIER_RIGHTSHIFT);
+        bool prev_ctrl = prev_report.modifier & (KEYBOARD_MODIFIER_LEFTCTRL | KEYBOARD_MODIFIER_RIGHTCTRL);
+        bool prev_shift = prev_report.modifier & (KEYBOARD_MODIFIER_LEFTSHIFT | KEYBOARD_MODIFIER_RIGHTSHIFT);
+        
+        bool current_alt = report->modifier & (KEYBOARD_MODIFIER_LEFTALT | KEYBOARD_MODIFIER_RIGHTALT);
+        bool current_gui = report->modifier & (KEYBOARD_MODIFIER_LEFTGUI | KEYBOARD_MODIFIER_RIGHTGUI);
+        
+        if (current_ctrl && current_shift && !(prev_ctrl && prev_shift)) {
+            isImeEnabled = !isImeEnabled;
+            gpio_put(PICO_DEFAULT_LED_PIN, isImeEnabled);
+            cayEngine.ResetFull();
+            memset(suppressed_keys, 0, sizeof(suppressed_keys));
         }
-    }
-    
-    // Tạo report mới để gửi cho PC
-    hid_keyboard_report_t new_report = *report;
-    memset(new_report.keycode, 0, 6);
-    uint8_t new_idx = 0;
+        
+        bool has_modifier = current_ctrl || current_alt || current_gui;
+        if (has_modifier) {
+            forward_report_direct(report);
+            prev_report = *report;
+            return;
+        }
 
-    // Xử lý các phím đang nhấn
-    for(uint8_t i=0; i<6; i++) {
-        uint8_t key = report->keycode[i];
-        if (key) {
-            bool is_new = true;
-            for(uint8_t j=0; j<6; j++) {
-                if (key == prev_report.keycode[j]) {
-                    is_new = false;
-                    break;
+        hid_keyboard_report_t new_report = *report;
+        memset(new_report.keycode, 0, sizeof(new_report.keycode));
+        int new_idx = 0;
+
+        for(uint8_t i=0; i<6; i++) {
+            uint8_t key = report->keycode[i];
+            if (key) {
+                bool is_new = true;
+                for(uint8_t j=0; j<6; j++) {
+                    if (key == prev_report.keycode[j]) {
+                        is_new = false;
+                        break;
+                    }
+                }
+                
+                if (is_new && isImeEnabled && !has_modifier) {
+                    if (key == HID_KEY_BACKSPACE) {
+                        cayEngine.ResetFull();
+                        // Do not suppress backspace in legacy mode
+                    } else {
+                        Cay::KeyCode cayCode = hid2cay(key);
+                        if (cayCode != Cay::KeyCode::Unknown) {
+                            Cay::KeyEvent e = { cayCode, '\0', false };
+                            e.character = hid2char(key, current_shift);
+                            cayEngine.OnKeyDown(e);
+                            if (e.handled) {
+                                suppressed_keys[key] = true;
+                                continue;
+                            }
+                        }
+                    }
+                }
+                
+                if (!suppressed_keys[key]) {
+                    if (new_idx < 6) new_report.keycode[new_idx++] = key;
                 }
             }
-            
-            // Chỉ đưa vào CayEngine nếu IME đang bật và không có phím modifier nào được giữ
-            if (is_new && isImeEnabled && !has_modifier) {
-                Cay::KeyEvent e;
-                e.keyCode = hid2cay(key);
-                e.character = hid2char(key, current_shift);
-                e.handled = false;
+        }
+        
+        for (int i = 0; i < 256; i++) {
+            if (suppressed_keys[i]) {
+                bool is_released = true;
+                for (int j = 0; j < 6; j++) {
+                    if (report->keycode[j] == i) {
+                        is_released = false;
+                        break;
+                    }
+                }
+                if (is_released) suppressed_keys[i] = false;
+            }
+        }
+        
+        forward_report_direct(&new_report);
+        prev_report = *report;
+        return;
+    }
+
+    // HELPER MODE (Coprocessor)
+    bool is_coprocessor_packet = (report->reserved == 0xAB);
+    if (!is_coprocessor_packet) {
+        // Lọc bớt spam: Chỉ gửi khi trạng thái phím vật lý thực sự thay đổi
+        static hid_keyboard_report_t last_physical_report = {0};
+        if (memcmp(&last_physical_report, report, sizeof(hid_keyboard_report_t)) == 0) {
+            return; // Trùng với report trước, bỏ qua để tránh lag
+        }
+        last_physical_report = *report;
+
+        // Physical key from Pico Keyboard
+        // Just forward it to Windows. The Windows Hook will intercept it,
+        // send 0xAB to Pico, and it will be processed below.
+        forward_report_direct(report);
+        return;
+    }
+
+    // Packet from Helper (0xAB)
+    uint8_t keycode = report->keycode[0];
+    uint8_t is_down = report->keycode[1]; // We stored is_down in keycode[1] in tuh_hid_set_report_cb
+    uint8_t modifiers = report->modifier;
+    
+    bool current_ctrl = modifiers & (KEYBOARD_MODIFIER_LEFTCTRL | KEYBOARD_MODIFIER_RIGHTCTRL);
+    bool current_alt = modifiers & (KEYBOARD_MODIFIER_LEFTALT | KEYBOARD_MODIFIER_RIGHTALT);
+    bool current_gui = modifiers & (KEYBOARD_MODIFIER_LEFTGUI | KEYBOARD_MODIFIER_RIGHTGUI);
+    bool has_modifier = current_ctrl || current_alt || current_gui;
+    
+    if (keycode != 0) {
+        if (is_down) {
+            if (has_modifier) {
+                cayEngine.ResetFull();
+                // Không làm gì thêm, vì Windows Hook đã thả phím này cho OS xử lý (không chặn)
+            } else {
+                bool is_letter = (keycode >= HID_KEY_A && keycode <= HID_KEY_Z);
+                bool is_backspace = (keycode == HID_KEY_BACKSPACE);
+                bool is_modifier_key = (keycode >= 0xE0 && keycode <= 0xE7); // LCTRL -> RGUI
+                bool is_capslock = (keycode == 0x39); // CapsLock
                 
-                if (e.keyCode == Cay::KeyCode::Backspace) {
-                    // Bypass backspace để OS tự xóa và lặp phím khi giữ
+                // Ký tự không phải chữ cái, không phải Backspace, không phải Shift/Caps -> Ngắt từ
+                if (!is_letter && !is_backspace && !is_modifier_key && !is_capslock) {
                     cayEngine.ResetFull();
-                } else if (e.keyCode != Cay::KeyCode::Unknown) {
+                }
+                
+                Cay::KeyCode cayCode = hid2cay(keycode);
+                Cay::KeyEvent e = { cayCode, '\0', false };
+                
+                e.character = hid2char(keycode, modifiers & 0x22); // Shift
+                
+                if (isImeEnabled) {
                     cayEngine.OnKeyDown(e);
                 }
                 
-                if (e.handled) {
-                    add_suppressed_key(key);
+                if (!e.handled) {
+                    // Inject raw fallback (0xAC)
+                    uint8_t raw[64] = {0};
+                    raw[0] = 0xAC;
+                    raw[1] = keycode;
+                    raw[2] = 1; // is_down
+                    raw[3] = modifiers;
+                    while (!tud_hid_n_ready(1)) { tud_task(); tuh_task(); }
+                    tud_hid_n_report(1, 0, raw, 64);
                 }
             }
-            
-            // Nếu phím không bị suppress, thêm vào report gửi đi
-            if (!is_suppressed(key) && new_idx < 6) {
-                new_report.keycode[new_idx++] = key;
+        } else {
+            // KeyUp
+            if (!has_modifier) {
+                uint8_t raw[64] = {0};
+                raw[0] = 0xAC;
+                raw[1] = keycode;
+                raw[2] = 0; // is_down
+                raw[3] = modifiers;
+                while (!tud_hid_n_ready(1)) { tud_task(); tuh_task(); }
+                tud_hid_n_report(1, 0, raw, 64);
             }
         }
     }
-    
-    forward_report(&new_report);
-    prev_report = *report;
 }
 
 // Callbacks của Host
@@ -301,7 +381,7 @@ void tuh_hid_keyboard_isr(uint8_t dev_addr, xfer_result_t event) {
 void tuh_hid_report_received_cb(uint8_t dev_addr, uint8_t instance, uint8_t const* report, uint16_t len) {
     uint8_t const itf_protocol = tuh_hid_interface_protocol(dev_addr, instance);
     if (itf_protocol == HID_ITF_PROTOCOL_KEYBOARD) {
-        process_kbd_report((hid_keyboard_report_t const*) report);
+        enqueue_event((hid_keyboard_report_t const*) report);
     }
     tuh_hid_receive_report(dev_addr, instance);
 }
@@ -315,7 +395,7 @@ void tuh_hid_umount_cb(uint8_t dev_addr, uint8_t instance) {}
 // Callbacks của Device
 uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen) { return 0; }
 
-// Bắt trạng thái LED từ PC và chuyển xuống Host keyboard, đồng thời nhận Handshake từ App Helper
+// Bật trạng thái LED từ PC và chuyển xuống Host keyboard, đồng thời nhận Handshake từ App Helper
 static uint8_t host_led_mask = 0;
 void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize) {
     if (instance == 0 && report_type == HID_REPORT_TYPE_OUTPUT && bufsize > 0) {
@@ -328,12 +408,27 @@ void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_
                 }
             }
         }
-    } else if (instance == 1 && report_type == HID_REPORT_TYPE_OUTPUT && bufsize > 0) {
-        // Nhận Handshake từ App Helper
+    } else if (instance == 1 && report_type == HID_REPORT_TYPE_OUTPUT) {
         if (buffer[0] == 0xAA) {
+            // Handshake app helper mode
             use_helper = true;
-        } else if (buffer[0] == 0x00) {
-            use_helper = false;
+        } else if (buffer[0] == 0xAB) {
+            // Nhận phím từ Coprocessor
+            use_helper = true;
+            uint8_t keycode = buffer[1];
+            uint8_t is_down = buffer[2];
+            uint8_t modifiers = buffer[3];
+            
+            hid_keyboard_report_t fake_report = {0};
+            fake_report.reserved = 0xAB; // Đánh dấu đây là gói tin từ Helper
+            fake_report.modifier = modifiers;
+            fake_report.keycode[0] = keycode;
+            fake_report.keycode[1] = is_down; // Store is_down here so process_kbd_report can access it
+            
+            enqueue_event(&fake_report);
+        } else if (buffer[0] == 0xAD) {
+            // Tín hiệu Reset từ Helper (Mouse click, v.v...)
+            cayEngine.ResetFull();
         }
     }
 }
@@ -358,6 +453,11 @@ int main(void) {
     while (1) {
         tud_task();
         tuh_task();
+        
+        if (event_head != event_tail) {
+            process_kbd_report(&event_queue[event_head]);
+            event_head = (event_head + 1) % EVENT_QUEUE_SIZE;
+        }
         
         if (inject_head != inject_tail && tud_hid_ready()) {
             tud_hid_keyboard_report(
