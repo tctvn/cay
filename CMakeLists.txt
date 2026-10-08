@@ -172,7 +172,7 @@ elseif(APPLE)
     set_target_properties(cay PROPERTIES
         MACOSX_BUNDLE_GUI_IDENTIFIER "com.tctvn.cay"
         MACOSX_BUNDLE_BUNDLE_NAME "Cay"
-        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.6"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.7"
         MACOSX_BUNDLE_BUNDLE_VERSION "1"
         MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/macos/Info.plist.in
     )

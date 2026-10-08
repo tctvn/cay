@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "com.example.cayime"
-    compileSdk = 34
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.cayime"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 37
         versionCode = 2
-        versionName = "1.0.6"
+        versionName = "1.0.7"
 
         externalNativeBuild {
             cmake {
