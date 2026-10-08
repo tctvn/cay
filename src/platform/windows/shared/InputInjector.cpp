@@ -42,7 +42,7 @@ static void FillVkInput(INPUT* inp, WORD vk, DWORD flags) {
 void InputInjector::ReplaceText(int backspaceCount, const wchar_t* newText, int newTextLen) {
     if (backspaceCount <= 0 && newTextLen <= 0) return;
 
-    INPUT inputs[256];
+    INPUT inputs[MAX_INPUTS];
     int idx = 0;
 
     // 1. ZWJ DUMMY INJECTION (Chrome/Excel Autocomplete Breaker)
@@ -60,13 +60,13 @@ void InputInjector::ReplaceText(int backspaceCount, const wchar_t* newText, int 
 
     // 2. DELETION (Xóa dummy + các ký tự gốc)
     int totalBs = backspaceCount + (useDummy ? 1 : 0);
-    for (int i = 0; i < totalBs && idx + 1 < 256; i++) {
+    for (int i = 0; i < totalBs && idx + 1 < MAX_INPUTS; i++) {
         FillVkInput(&inputs[idx++], VK_BACK, 0);
         FillVkInput(&inputs[idx++], VK_BACK, KEYEVENTF_KEYUP);
     }
 
     // 3. INSERTION (Text mới)
-    for (int i = 0; i < newTextLen && idx + 1 < 256; i++) {
+    for (int i = 0; i < newTextLen && idx + 1 < MAX_INPUTS; i++) {
         FillUnicodeInput(&inputs[idx++], newText[i], 0);
         FillUnicodeInput(&inputs[idx++], newText[i], KEYEVENTF_KEYUP);
     }

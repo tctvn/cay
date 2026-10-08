@@ -54,7 +54,8 @@ LRESULT CALLBACK InputHookManager::KbProc(int nCode, WPARAM wParam, LPARAM lPara
     }
 
     KBDLLHOOKSTRUCT* kb = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
-    if (kb->dwExtraInfo == InputInjector::MAGIC_EXTRA_INFO) {
+    bool isInjected = (kb->flags & LLKHF_INJECTED) != 0;
+    if (kb->dwExtraInfo == InputInjector::MAGIC_EXTRA_INFO || isInjected) {
         return CallNextHookEx(nullptr, nCode, wParam, lParam);
     }
 
